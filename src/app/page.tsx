@@ -249,6 +249,70 @@ export default function Home() {
 
   const FormFields = ({ isMobile = false }) => (
     <div className={cn("space-y-6", isMobile && "pb-32 px-1")}>
+
+      {/* MOBILE ONLY: Inline Preview & Controls (Top of Form) */}
+      {isMobile && (
+        <div className="mb-6 space-y-4">
+          {/* 1. Inline Preview */}
+          {previewImage && (
+            <div className="flex flex-col items-center gap-2 bg-white/5 rounded-2xl border border-white/10 p-2 overflow-hidden shadow-2xl">
+              <span className="text-[10px] font-black text-yard-cyan uppercase tracking-widest animate-pulse w-full text-center flex justify-center items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-yard-cyan"></span>
+                Live Studio View
+              </span>
+              <div className="relative w-full flex justify-center scale-[0.65] origin-top h-[420px] -mb-[140px]">
+                <AssetPreview
+                  data={formData}
+                  previewImage={previewImage}
+                  zoom={zoom}
+                  qrCodeUrl={qrCodeUrl}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* 2. Compact Actions Grid */}
+          <div className="grid grid-cols-2 gap-3">
+            {/* Upload Button */}
+            <div
+              onClick={() => fileInputRef.current?.click()}
+              className={cn(
+                "flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all active:scale-95",
+                previewImage
+                  ? "bg-white/5 border-white/10 hover:bg-white/10"
+                  : "bg-yard-cyan/10 border-yard-cyan text-yard-cyan shadow-[0_0_15px_rgba(0,242,255,0.2)] animate-pulse"
+              )}
+            >
+              <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center shrink-0">
+                {previewImage ? <ImagePlus className="w-4 h-4 text-white" /> : <Camera className="w-4 h-4 text-yard-cyan" />}
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[10px] font-bold uppercase tracking-widest text-white">
+                  {previewImage ? "Change" : "Upload"}
+                </span>
+              </div>
+            </div>
+
+            {/* Zoom Control (Compact) */}
+            <div className="bg-white/5 border border-white/10 rounded-xl p-3 flex flex-col justify-center gap-1">
+              <div className="flex justify-between items-center text-[8px] font-bold uppercase tracking-widest">
+                <span className="text-zinc-400">Scale</span>
+                <span className="text-yard-cyan">{Math.round(zoom * 100)}%</span>
+              </div>
+              <input
+                type="range"
+                min="0.5"
+                max="2"
+                step="0.1"
+                value={zoom}
+                onChange={(e) => setZoom(parseFloat(e.target.value))}
+                className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-yard-cyan"
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Title & AI */}
       <div className="space-y-2">
         <div className="flex justify-between items-end">
@@ -384,21 +448,24 @@ export default function Home() {
 
       {/* Zoom Control (If photo exists, show here for Desktop, or Mobile No-Photo) */}
       {/* In Mobile Split View, this should probably be near the preview or in the form */}
-      <div className="bg-white/5 border border-white/10 rounded-xl p-3 flex flex-col gap-2">
-        <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest">
-          <span className="text-zinc-400 flex items-center gap-1"><Maximize className="w-3 h-3" /> Zoom</span>
-          <span className="text-yard-cyan">{Math.round(zoom * 100)}%</span>
+      {/* Zoom Control (Desktop Only - Mobile has it at top) */}
+      {!isMobile && (
+        <div className="bg-white/5 border border-white/10 rounded-xl p-3 flex flex-col gap-2">
+          <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest">
+            <span className="text-zinc-400 flex items-center gap-1"><Maximize className="w-3 h-3" /> Zoom</span>
+            <span className="text-yard-cyan">{Math.round(zoom * 100)}%</span>
+          </div>
+          <input
+            type="range"
+            min="0.5"
+            max="2"
+            step="0.1"
+            value={zoom}
+            onChange={(e) => setZoom(parseFloat(e.target.value))}
+            className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-yard-cyan"
+          />
         </div>
-        <input
-          type="range"
-          min="0.5"
-          max="2"
-          step="0.1"
-          value={zoom}
-          onChange={(e) => setZoom(parseFloat(e.target.value))}
-          className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-yard-cyan"
-        />
-      </div>
+      )}
     </div>
   );
 
