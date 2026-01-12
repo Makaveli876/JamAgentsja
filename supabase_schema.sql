@@ -21,6 +21,11 @@ create policy "Enable read for public" on listings
 for select 
 using (true);
 
+-- Policy 3: Enable Insert for Public (anyone can create listings)
+create policy "Enable insert for public" on listings
+for insert
+with check (true);
+
 -- Create the events table (Analytics)
 create table events (
   id uuid default gen_random_uuid() primary key,
