@@ -145,7 +145,7 @@ export const AssetPreview = forwardRef<HTMLDivElement, AssetPreviewProps>(({ dat
                         <div className="absolute inset-0 z-0 overflow-hidden">
                             <img
                                 src={previewImage}
-                                className="w-full h-full object-cover blur-3xl opacity-60 scale-125 saturate-150"
+                                className="w-full h-full object-cover blur-2xl opacity-50 scale-125 saturate-150"
                                 alt="Ambient"
                                 draggable={false}
                             />
@@ -153,7 +153,7 @@ export const AssetPreview = forwardRef<HTMLDivElement, AssetPreviewProps>(({ dat
                         <div className="absolute inset-0 z-10">
                             <img
                                 src={previewImage}
-                                className="h-full w-full object-contain transition-transform duration-100 ease-out will-change-transform"
+                                className="h-full w-full object-contain relative z-10 opacity-100 mix-blend-normal transition-transform duration-100 ease-out will-change-transform"
                                 style={{
                                     transform: `translate(${imagePos.x}px, ${imagePos.y}px) scale(${zoom})`,
                                     cursor: isDragging ? 'grabbing' : 'grab'
@@ -169,9 +169,9 @@ export const AssetPreview = forwardRef<HTMLDivElement, AssetPreviewProps>(({ dat
                         <div className="absolute inset-0 bg-gradient-to-tr from-yard-cyan/10 via-transparent to-yard-purple/10" />
                     </div>
                 )}
-                <div className="absolute inset-0 z-20 bg-black/20 pointer-events-none" />
+                {/* REMOVED: bg-black/20 overlay that was darkening the image */}
                 {(layout === 'bottom' || layout === 'minimal' || layout === 'center') && (
-                    <div className="absolute bottom-0 w-full h-3/4 bg-gradient-to-t from-black via-black/80 to-transparent z-30 pointer-events-none" />
+                    <div className="absolute bottom-0 w-full h-3/4 bg-gradient-to-t from-black via-black/40 to-transparent z-30 pointer-events-none" />
                 )}
             </div>
 
