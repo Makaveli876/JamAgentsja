@@ -558,182 +558,212 @@ export default function Home() {
       {stage === 'editor' && (
         <>
           {/* MOBILE EDITOR - SPLIT SCREEN (Canva Style) */}
-          <div className="md:hidden flex flex-col h-[100dvh] bg-black overflow-hidden relative">
+          {/* MOBILE EDITOR - CREATOR CANVAS (World Class) */}
+          <div className="md:hidden flex flex-col h-[100dvh] bg-[#0d0d0d] overflow-hidden relative font-sans">
 
-            {/* 1. TOP: PREVIEW AREA (Flexible Height) */}
-            <div className="flex-1 relative flex flex-col items-center justify-center p-4 overflow-hidden">
-              {previewImage ? (
-                <>
-                  {/* Blurred Back */}
-                  <div className="absolute inset-0 z-0">
-                    <img src={previewImage} className="w-full h-full object-cover blur-3xl opacity-30" alt="" />
-                    <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-transparent to-black" />
-                  </div>
+            {/* HEADER */}
+            <header className="flex-shrink-0 flex items-center justify-between p-4 pt-safe-top z-10 bg-[#0d0d0d]">
+              <Header />
+              <div className="flex gap-2">
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="bg-[#222] border-2 border-[#333] w-10 h-10 flex items-center justify-center rounded-lg active:scale-95 transition-all shadow-[4px_4px_0px_#000]"
+                >
+                  <ImagePlus className="w-5 h-5 text-yard-cyan" />
+                </button>
+              </div>
+            </header>
 
-                  {/* Header (Floating) */}
-                  <div className="absolute top-0 inset-x-0 z-20 p-4 flex justify-between items-start pt-safe-top">
-                    <Header />
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => fileInputRef.current?.click()}
-                        className="bg-white/10 backdrop-blur-md border border-white/10 p-2.5 rounded-full text-white shadow-lg active:scale-95 transition-transform"
-                      >
-                        <ImagePlus className="w-5 h-5" />
-                      </button>
+            {/* SCROLLABLE CONTENT */}
+            <main className="flex-1 overflow-y-auto overflow-x-hidden pb-32">
+              <div className="px-4 py-2 space-y-6">
+
+                {/* 1. MURAL FRAME (Preview) - Never Collapses */}
+                <div className="relative w-full aspect-[9/16] max-h-[50vh] bg-[#222] border-4 border-[#333] shadow-[inset_0_0_50px_rgba(0,0,0,0.8)] overflow-hidden rounded-xl">
+                  {/* Glow Effects */}
+                  <div className="absolute -top-4 -left-4 w-20 h-20 bg-yard-cyan/20 blur-xl rounded-full pointer-events-none" />
+                  <div className="absolute -bottom-4 -right-4 w-20 h-20 bg-yard-gold/20 blur-xl rounded-full pointer-events-none" />
+
+                  {previewImage ? (
+                    <div className="w-full h-full flex items-center justify-center relative z-10">
+                      <div className="scale-[0.6] origin-center shadow-2xl">
+                        <AssetPreview
+                          data={formData}
+                          previewImage={previewImage}
+                          zoom={zoom}
+                          qrCodeUrl={qrCodeUrl}
+                        />
+                      </div>
                     </div>
-                  </div>
-
-                  {/* Main Preview Card */}
-                  <div className="relative z-10 w-full max-w-[340px] aspect-[9/16] flex items-center justify-center pointer-events-auto">
-                    <div className="origin-center scale-[0.55] sm:scale-75 transition-transform duration-300 ease-out">
-                      <AssetPreview
-                        data={formData}
-                        previewImage={previewImage}
-                        zoom={zoom}
-                        qrCodeUrl={qrCodeUrl}
-                      />
+                  ) : (
+                    <div className="w-full h-full flex flex-col items-center justify-center text-zinc-600 gap-2">
+                      <Camera className="w-12 h-12 opacity-50" />
+                      <span className="text-xs font-black tracking-widest uppercase">No Signal</span>
                     </div>
-                  </div>
-                </>
-              ) : (
-                <div className="absolute inset-0 z-0 flex flex-col items-center justify-center p-6 bg-gradient-to-tr from-bg-deep to-[#0f172a]">
-                  <Header />
-                  <div className="flex-1 flex flex-col justify-center w-full max-w-sm">
-                    <UploadZone className="h-[240px] shadow-2xl bg-white/5 border-white/10" />
-                    <p className="text-center text-zinc-500 text-xs mt-6 px-8 leading-relaxed">
-                      Upload a photo to enter the studio.
-                    </p>
+                  )}
+
+                  {/* Live Badge */}
+                  <div className="absolute top-3 left-3 bg-black/80 border border-yard-cyan/50 px-2 py-1 flex items-center gap-1.5 z-20">
+                    <div className="w-1.5 h-1.5 bg-yard-cyan rounded-full animate-pulse" />
+                    <span className="text-[10px] font-bold text-yard-cyan tracking-widest uppercase">Live</span>
                   </div>
                 </div>
-              )}
-            </div>
 
-            {/* 2. BOTTOM: CONTROLS (Fixed Height Sheet) */}
-            {previewImage && (
-              <div className="h-[55%] bg-[#0f172a] rounded-t-[2.5rem] shadow-[0_-10px_40px_rgba(0,0,0,0.5)] border-t border-white/10 flex flex-col relative z-30 animate-in slide-in-from-bottom-20 duration-500">
-                {/* Drag Indicator (Visual Only) */}
-                <div className="w-full h-6 flex items-center justify-center shrink-0">
-                  <div className="w-12 h-1 bg-white/20 rounded-full" />
-                </div>
+                {/* 2. CONTROLS CONTAINER */}
+                <div className="flex flex-col gap-6">
 
-                {/* Controls Container */}
-                <div className="flex-1 flex flex-col min-h-0">
-                  {/* Tabs - Sticky Top of Panel */}
-                  <div className="px-6 pb-4 shrink-0">
-                    <div className="flex p-1 bg-black/40 rounded-xl border border-white/5">
-                      <button
-                        onClick={() => setEditorTab('details')}
-                        className={cn(
-                          "flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all",
-                          editorTab === 'details' ? "bg-white text-black shadow-lg" : "text-zinc-500 hover:text-white"
-                        )}
-                      >
-                        Details
-                      </button>
-                      <button
-                        onClick={() => setEditorTab('design')}
-                        className={cn(
-                          "flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all",
-                          editorTab === 'design' ? "bg-white text-black shadow-lg" : "text-zinc-500 hover:text-white"
-                        )}
-                      >
-                        Visuals
-                      </button>
-                    </div>
+                  {/* Big Tabs */}
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setEditorTab('details')}
+                      className={cn(
+                        "flex-1 py-3 text-sm font-black italic tracking-tighter border-b-4 transition-all",
+                        editorTab === 'details'
+                          ? "border-yard-gold text-white bg-white/5"
+                          : "border-[#333] text-zinc-600 hover:text-zinc-400"
+                      )}
+                    >
+                      DETAILS
+                    </button>
+                    <button
+                      onClick={() => setEditorTab('design')}
+                      className={cn(
+                        "flex-1 py-3 text-sm font-black italic tracking-tighter border-b-4 transition-all",
+                        editorTab === 'design'
+                          ? "border-yard-cyan text-white bg-white/5"
+                          : "border-[#333] text-zinc-600 hover:text-zinc-400"
+                      )}
+                    >
+                      VISUALS
+                    </button>
                   </div>
 
-                  {/* Scrollable Form Area */}
-                  <div className="flex-1 overflow-y-auto px-6 pb-24 overflow-x-hidden">
-                    {editorTab === 'details' ? (
-                      <div className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-300">
-                        {/* Title Input */}
-                        <div className="space-y-2">
-                          <div className="flex justify-between items-end">
-                            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Item Title</span>
-                            <button onClick={handleAIOptimize} disabled={isOptimizing} className="text-[10px] font-bold text-yard-cyan flex items-center gap-1">
-                              {isOptimizing ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />} AI Hook
+                  {/* Tab Content */}
+                  {editorTab === 'details' ? (
+                    <div className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-300">
+
+                      {/* Item Title Group */}
+                      <div className="space-y-1">
+                        <div className="flex justify-between items-end px-1">
+                          <label className="text-[10px] font-black text-yard-cyan tracking-widest uppercase">What's the Vibe?</label>
+                          <button onClick={handleAIOptimize} disabled={isOptimizing} className="text-[10px] font-black text-yard-gold uppercase tracking-widest hover:underline flex items-center gap-1">
+                            {isOptimizing ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />} Magic Hook
+                          </button>
+                        </div>
+                        <input
+                          type="text"
+                          value={formData.title}
+                          onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                          className="w-full h-14 bg-[#1a1a1a] border-2 border-[#333] text-xl font-bold text-white px-4 focus:border-yard-gold focus:outline-none focus:bg-black transition-all placeholder:text-zinc-700 rounded-lg"
+                          placeholder="e.g. 2018 Honda Fit"
+                        />
+                      </div>
+
+                      {/* Price & Link Up */}
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-black text-zinc-500 tracking-widest uppercase px-1">Price</label>
+                          <input
+                            type="text"
+                            value={formData.price}
+                            onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                            className="w-full h-14 bg-[#1a1a1a] border-2 border-[#333] text-xl font-bold text-white px-4 focus:border-yard-green focus:outline-none focus:bg-black transition-all rounded-lg"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-black text-zinc-500 tracking-widest uppercase px-1">WhatsApp</label>
+                          <input
+                            type="text"
+                            value={formData.phone}
+                            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                            className="w-full h-14 bg-[#1a1a1a] border-2 border-[#333] text-lg font-bold text-white px-4 focus:border-yard-green focus:outline-none focus:bg-black transition-all rounded-lg"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Location */}
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-black text-zinc-500 tracking-widest uppercase px-1">Where At?</label>
+                        <input
+                          type="text"
+                          value={formData.location}
+                          onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                          className="w-full h-14 bg-[#1a1a1a] border-2 border-[#333] text-lg font-bold text-white px-4 focus:border-yard-cyan focus:outline-none focus:bg-black transition-all rounded-lg"
+                        />
+                      </div>
+
+                      {/* Promo & Slogan */}
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-black text-zinc-500 tracking-widest uppercase px-1">Promo Tag</label>
+                          <input
+                            type="text"
+                            value={formData.promoLabel}
+                            onChange={(e) => setFormData({ ...formData, promoLabel: e.target.value })}
+                            className="w-full h-14 bg-[#1a1a1a] border-2 border-[#333] text-sm font-bold text-white px-4 focus:border-yard-gold focus:outline-none focus:bg-black transition-all rounded-lg"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-black text-zinc-500 tracking-widest uppercase px-1">Slogan</label>
+                          <input
+                            type="text"
+                            value={formData.slogan}
+                            onChange={(e) => setFormData({ ...formData, slogan: e.target.value })}
+                            className="w-full h-14 bg-[#1a1a1a] border-2 border-[#333] text-sm font-bold text-white px-4 focus:border-yard-gold focus:outline-none focus:bg-black transition-all rounded-lg"
+                            placeholder="Optional..."
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black text-zinc-500 tracking-widest uppercase px-1">Visual Theme</label>
+                        <div className="grid grid-cols-3 gap-3">
+                          {(['cyber', 'luxury', 'island'] as const).map(s => (
+                            <button key={s} onClick={() => setFormData({ ...formData, style: s })}
+                              className={cn("h-14 border-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all shadow-[4px_4px_0px_rgba(0,0,0,0.5)] active:translate-y-1 active:shadow-none",
+                                formData.style === s
+                                  ? s === 'luxury' ? "bg-yard-gold border-yard-gold text-black"
+                                    : s === 'island' ? "bg-yard-green border-yard-green text-black"
+                                      : "bg-yard-cyan border-yard-cyan text-black"
+                                  : "bg-[#1a1a1a] border-[#333] text-zinc-500"
+                              )}>
+                              {s}
                             </button>
-                          </div>
-                          <input type="text" value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                            className="w-full h-12 bg-black/40 border border-white/10 rounded-xl px-4 text-white font-medium focus:border-yard-cyan transition-colors" placeholder="e.g. 2015 Honda Fit" />
-                        </div>
-
-                        {/* Price & Promo Grid */}
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Price</span>
-                            <input type="text" value={formData.price} onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                              className="w-full h-12 bg-black/40 border border-white/10 rounded-xl px-4 text-white font-bold" />
-                          </div>
-                          <div className="space-y-2">
-                            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Promo</span>
-                            <input type="text" value={formData.promoLabel} onChange={(e) => setFormData({ ...formData, promoLabel: e.target.value })}
-                              className="w-full h-12 bg-black/40 border border-white/10 rounded-xl px-4 text-white" />
-                          </div>
-                        </div>
-
-                        {/* Phone & Location */}
-                        <div className="space-y-2">
-                          <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Phone</span>
-                          <input type="text" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                            className="w-full h-12 bg-black/40 border border-white/10 rounded-xl px-4 text-white font-medium" />
-                        </div>
-                        <div className="space-y-2">
-                          <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Location</span>
-                          <input type="text" value={formData.location} onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                            className="w-full h-12 bg-black/40 border border-white/10 rounded-xl px-4 text-white font-medium" />
+                          ))}
                         </div>
                       </div>
-                    ) : (
-                      <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
-                        {/* Theme Selector */}
-                        <div className="space-y-3">
-                          <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Theme</span>
-                          <div className="grid grid-cols-3 gap-2">
-                            {(['cyber', 'luxury', 'island'] as const).map(s => (
-                              <button key={s} onClick={() => setFormData({ ...formData, style: s })}
-                                className={cn("h-10 rounded-lg border text-[10px] font-black uppercase tracking-widest transition-all",
-                                  formData.style === s ? "bg-white text-black border-white" : "border-white/10 text-zinc-500")}>
-                                {s}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
 
-                        {/* Layout Selector */}
-                        <div className="space-y-3">
-                          <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Layout</span>
-                          <div className="grid grid-cols-3 gap-2">
-                            {(['center', 'bottom', 'minimal'] as const).map(l => (
-                              <button key={l} onClick={() => setFormData({ ...formData, layout: l })}
-                                className={cn("h-10 rounded-lg border text-[10px] font-bold uppercase tracking-widest transition-all",
-                                  formData.layout === l ? "bg-white/10 text-white border-white/30" : "border-white/10 text-zinc-500")}>
-                                {l}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* Zoom Slider */}
-                        <div className="space-y-3">
-                          <div className="flex justify-between">
-                            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Zoom</span>
-                            <span className="text-[10px] font-bold text-yard-cyan">{Math.round(zoom * 100)}%</span>
-                          </div>
-                          <input type="range" min="0.5" max="2" step="0.1" value={zoom} onChange={(e) => setZoom(parseFloat(e.target.value))}
-                            className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-yard-cyan" />
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black text-zinc-500 tracking-widest uppercase px-1">Layout</label>
+                        <div className="grid grid-cols-3 gap-3">
+                          {(['center', 'bottom', 'minimal'] as const).map(l => (
+                            <button key={l} onClick={() => setFormData({ ...formData, layout: l })}
+                              className={cn("h-12 border-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all",
+                                formData.layout === l ? "bg-[#333] border-white text-white" : "bg-[#1a1a1a] border-[#333] text-zinc-600"
+                              )}>
+                              {l}
+                            </button>
+                          ))}
                         </div>
                       </div>
-                    )}
-                  </div>
-                </div>
 
-                {/* Sticky Generate Button (Bottom) */}
-                <div className="absolute bottom-0 inset-x-0 p-4 pt-8 bg-gradient-to-t from-[#0f172a] via-[#0f172a] to-transparent z-40">
-                  <CreateButton className="shadow-[0_0_30px_rgba(34,197,94,0.3)] hover:shadow-[0_0_50px_rgba(34,197,94,0.5)] active:scale-[0.98]" />
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black text-zinc-500 tracking-widest uppercase px-1">Zoom Level: {Math.round(zoom * 100)}%</label>
+                        <input type="range" min="0.5" max="2" step="0.1" value={zoom} onChange={(e) => setZoom(parseFloat(e.target.value))}
+                          className="w-full h-2 bg-[#1a1a1a] rounded-lg appearance-none cursor-pointer accent-yard-cyan" />
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
-            )}
+            </main>
+
+            {/* STICKY FOOTER */}
+            <footer className="absolute bottom-0 inset-x-0 p-4 bg-black/80 backdrop-blur-xl border-t border-[#333]">
+              <CreateButton className="w-full h-16 text-xl font-black italic tracking-tighter uppercase shadow-[0_0_20px_rgba(34,197,94,0.4)]" />
+            </footer>
           </div>
 
           {/* DESKTOP EDITOR */}
