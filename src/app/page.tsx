@@ -14,7 +14,12 @@ import {
   Zap,
   Layout,
   Type,
-  Maximize
+  Maximize,
+  Smartphone,
+  Instagram,
+  FileText,
+  ChevronUp,
+  ChevronDown
 } from "lucide-react";
 import { AssetPreview } from "@/components/AssetPreview";
 import { generateSalesHook } from "@/app/actions/generate-hook";
@@ -27,6 +32,7 @@ import { cn } from "@/lib/utils";
 // --- TYPES ---
 type StyleType = 'cyber' | 'luxury' | 'island';
 type LayoutType = 'center' | 'bottom' | 'minimal';
+type ModeType = 'status' | 'post' | 'flyer';
 
 export default function Home() {
   const [mounted, setMounted] = useState(false);
@@ -38,7 +44,7 @@ export default function Home() {
   const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
 
   // Mobile UI States
-  const [isMobilePreviewOpen, setIsMobilePreviewOpen] = useState(false);
+  const [isFormOpen, setIsFormOpen] = useState(false); // Controls the Bottom Sheet
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
@@ -50,6 +56,7 @@ export default function Home() {
     phone: "876-123-4567",
     style: "cyber" as StyleType,
     layout: "center" as LayoutType,
+    mode: "status" as ModeType,
     slogan: "",
     promoLabel: "SPECIAL OFFER",
   });
@@ -143,7 +150,7 @@ export default function Home() {
           slug = result.slug;
           console.log("🔒 Data Trap Captured. Slug:", slug);
           const { logEvent } = await import("@/app/actions/track-event");
-          await logEvent('flyer_created', undefined, slug, { price: formData.price, style: formData.style });
+          await logEvent('flyer_created', undefined, slug, { price: formData.price, style: formData.style, mode: formData.mode });
         }
       } catch (dbError) {
         console.error("Data Trap Warning (Continuing anyway):", dbError);
@@ -152,7 +159,7 @@ export default function Home() {
       // EVENT: Share Attempt
       const { logEvent } = await import("@/app/actions/track-event");
       const isShareSupported = typeof navigator !== 'undefined' && !!(navigator as any).share;
-      await logEvent('share_attempt', undefined, slug, { platform: isShareSupported ? 'mobile' : 'desktop' });
+      await logEvent('share_attempt', undefined, slug, { platform: isShareSupported ? 'mobile' : 'desktop', mode: formData.mode });
 
       // Step 2: QR Code
       try {
@@ -170,6 +177,9 @@ export default function Home() {
         useCORS: true,
         backgroundColor: null,
         logging: false,
+        allowTaint: true,
+        width: 360, // Force width to match container
+        height: formData.mode === 'post' ? 360 : formData.mode === 'flyer' ? 450 : 640 // Dynamic Height
       });
 
       const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/png'));
@@ -203,6 +213,30 @@ export default function Home() {
   };
 
   // --- REUSABLE COMPONENTS ---
+
+  const ModeToggle = () => (
+    <div className="flex gap-1 bg-black/60 backdrop-blur-xl p-1.5 rounded-full border border-white/10 shadow-2xl">
+      {[
+        { id: 'status', icon: Smartphone, label: 'Status' },
+        { id: 'post', icon: Instagram, label: 'Post' },
+        { id: 'flyer', icon: FileText, label: 'Flyer' },
+      ].map((m) => (
+        <button
+          key={m.id}
+          onClick={() => setFormData(prev => ({ ...prev, mode: m.id as ModeType }))}
+          className={cn(
+            "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wide transition-all",
+            formData.mode === m.id
+              ? "bg-white text-black shadow-lg scale-105"
+              : "text-zinc-400 hover:text-white"
+          )}
+        >
+          <m.icon className="w-3 h-3" />
+          {m.label}
+        </button>
+      ))}
+    </div>
+  );
 
   const Header = () => (
     <div className="flex items-center gap-3 py-2">
@@ -419,7 +453,7 @@ export default function Home() {
   if (!mounted) return null;
 
   return (
-    <main className="min-h-screen bg-bg-deep text-text-primary overflow-x-hidden selection:bg-yard-gold/30">
+    <main className="min-h-screen bg-bg-deep text-text-primary overflow-x-hidden selection:bg-yard-gold/30 relative">
 
       {/* HIDDEN INPUT */}
       <input
@@ -430,75 +464,122 @@ export default function Home() {
         onChange={handleImageUpload}
       />
 
-      {/* ==================== MOBILE LAYOUT (md:hidden) ==================== */}
-      <div className="md:hidden flex flex-col h-[100dvh]">
+      {/* ==================== LIVE STAGE: MOBILE (md:hidden) ==================== */}
+      <div className="md:hidden fixed inset-0 z-0 flex flex-col">
 
-        {/* State A: NO PHOTO (Standard Scroll) */}
-        {!previewImage && (
-          <div className="flex-1 overflow-y-auto">
-            <div className="p-5 space-y-6">
-              <Header />
-              <UploadZone className="h-[200px]" />
-              <FormFields isMobile={true} />
+        {/* 1. BACKGROUND HERO (Live Preview) */}
+        {previewImage ? (
+          <div className="absolute inset-0 z-0 bg-black">
+            {/* Blurred Background */}
+            <img
+              src={previewImage}
+              alt="Back"
+              className="w-full h-full object-cover blur-[80px] opacity-40 scale-150"
+            />
+            {/* Overlay Gradient for readability */}
+            <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/90" />
+
+            {/* CENTRAL STAGE */}
+            <div className="absolute inset-0 flex items-center justify-center pb-32 px-6">
+              <div className={cn(
+                "shadow-[0_0_50px_rgba(0,0,0,0.5)] transition-all duration-500 will-change-transform origin-center scale-90",
+                isFormOpen ? "opacity-40 scale-75 blur-sm" : "opacity-100"
+              )}>
+                {/* The Asset is always rendered here, purely visual */}
+                <AssetPreview
+                  data={formData}
+                  previewImage={previewImage}
+                  zoom={zoom}
+                  qrCodeUrl={qrCodeUrl}
+                />
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="absolute inset-0 z-0 flex flex-col items-center justify-center p-6 bg-gradient-to-tr from-bg-deep to-[#0f172a]">
+            <Header />
+            <div className="flex-1 flex flex-col justify-center w-full max-w-sm">
+              <UploadZone className="h-[240px] shadow-2xl bg-white/5 border-white/10" />
+              <p className="text-center text-zinc-500 text-xs mt-6 px-8 leading-relaxed">
+                Upload a photo to enter the studio.
+                <br />
+                We'll separate the subject and create your flyer.
+              </p>
             </div>
           </div>
         )}
 
-        {/* State B: SPLIT VIEW (Fixed Heights) */}
+        {/* 2. TOP LOUNGE (Header + Mode Toggle) */}
         {previewImage && (
-          <>
-            {/* Top: Header + Preview (Fixed 45%) */}
-            <div className="h-[45dvh] bg-[#020617] relative flex flex-col border-b border-white/10 shrink-0">
-              <div className="absolute top-2 left-4 z-20">
-                <Header />
-              </div>
-
-              {/* Change Photo Button (Mini) */}
+          <div className="absolute top-0 inset-x-0 z-40 p-4 pt-safe-top flex flex-col items-center gap-4 bg-gradient-to-b from-black/80 to-transparent">
+            <div className="w-full flex justify-between items-center">
+              <Header />
               <button
                 onClick={() => fileInputRef.current?.click()}
-                className="absolute top-4 right-4 z-20 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10 flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-white hover:bg-white/10"
+                className="bg-white/10 p-2 rounded-full backdrop-blur-md border border-white/5"
               >
-                <Camera className="w-3 h-3" /> Change
+                <ImagePlus className="w-5 h-5 text-white" />
               </button>
-
-              <div className="flex-1 flex items-center justify-center p-6 pb-2 overflow-hidden">
-                <div className="scale-[0.55] origin-center shadow-2xl">
-                  <AssetPreview
-                    data={formData}
-                    previewImage={previewImage}
-                    zoom={zoom}
-                    qrCodeUrl={qrCodeUrl}
-                  />
-                </div>
-              </div>
             </div>
-
-            {/* Bottom: Tabs/Form (Scrollable 55%) */}
-            <div className="flex-1 bg-[#111827] relative z-10 overflow-hidden flex flex-col shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
-              {/* Scrollable Form Area */}
-              <div className="flex-1 overflow-y-auto p-5 pb-24">
-                <FormFields isMobile={true} />
-              </div>
-
-              {/* Sticky Action Bar */}
-              <div className="absolute bottom-0 inset-x-0 p-4 bg-black/80 backdrop-blur-xl border-t border-white/10 z-50">
-                <CreateButton label="✨ Create Flyer" />
-              </div>
-            </div>
-          </>
+            <ModeToggle />
+          </div>
         )}
 
-        {/* Footer for No Photo State ONLY */}
-        {!previewImage && (
-          <div className="p-4 bg-black/80 backdrop-blur-xl border-t border-white/10 sticky bottom-0 z-50">
-            <CreateButton label="Upload Photo to Start" />
+        {/* 3. BOTTOM DECK (Context Aware Sheet) */}
+        {previewImage && (
+          <div className={cn(
+            "absolute bottom-0 inset-x-0 z-50 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] flex flex-col",
+            isFormOpen ? "h-[85vh] bg-[#020617]" : "h-auto bg-transparent pointer-events-none"
+          )}>
+            {/* Drag Handle Area */}
+            <div
+              onClick={() => setIsFormOpen(!isFormOpen)}
+              className={cn(
+                "w-full p-4 flex flex-col items-center justify-center gap-2 cursor-pointer pointer-events-auto",
+                isFormOpen ? "bg-[#020617] border-t border-white/5 rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.5)]" : "bg-transparent pb-8"
+              )}
+            >
+              {!isFormOpen && (
+                <div className="flex gap-2 w-full max-w-xs pointer-events-auto">
+                  <CreateButton className="flex-1 h-16 text-lg shadow-[0_10px_40px_rgba(0,255,100,0.3)]" />
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setIsFormOpen(true); }}
+                    className="w-16 h-16 bg-white/10 backdrop-blur-xl border border-white/20 rounded-xl flex items-center justify-center text-white"
+                  >
+                    <ChevronUp className="w-6 h-6 animate-bounce text-yard-cyan" />
+                  </button>
+                </div>
+              )}
+
+              {isFormOpen && (
+                <div className="w-12 h-1 bg-white/20 rounded-full mb-2" />
+              )}
+            </div>
+
+            {/* Expanded Content */}
+            {isFormOpen && (
+              <div className="flex-1 overflow-y-auto px-6 pb-24 animate-in fade-in slide-in-from-bottom-10 duration-300">
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-sm font-bold text-zinc-400 uppercase tracking-widest">Editor Studio</h2>
+                  <button
+                    onClick={() => setIsFormOpen(false)}
+                    className="p-2 -mr-2 text-zinc-500 hover:text-white"
+                  >
+                    <ChevronDown className="w-5 h-5" />
+                  </button>
+                </div>
+                <FormFields />
+                <div className="h-8" />
+                <CreateButton className="mb-8" />
+              </div>
+            )}
           </div>
         )}
 
       </div>
 
       {/* ==================== DESKTOP LAYOUT (md:flex) ==================== */}
-      <div className="hidden md:block max-w-[1400px] mx-auto px-8 py-12">
+      <div className="hidden md:block max-w-[1400px] mx-auto px-8 py-12 relative z-10">
         <div className="grid grid-cols-12 gap-12 items-start">
 
           {/* Left Col: Form (5 Cols) */}
@@ -509,7 +590,9 @@ export default function Home() {
               animate={{ opacity: 1, y: 0 }}
               className="glass-card p-8 border-gradient relative overflow-hidden"
             >
-              {/* Upload Hero */}
+              <div className="flex justify-center mb-8">
+                <ModeToggle />
+              </div>
               <UploadZone className="mb-8" />
               <FormFields />
               <div className="mt-8">
@@ -558,7 +641,12 @@ export default function Home() {
 
       {/* ==================== STEALTH CAPTURE STAGE ==================== */}
       <div className="fixed top-0 left-0 -z-50 opacity-0 pointer-events-none overflow-hidden" style={{ transform: 'translateX(-9999px)' }}>
-        <div className="w-[360px] h-[640px]">
+        <div
+          style={{
+            width: 360,
+            height: formData.mode === 'post' ? 360 : formData.mode === 'flyer' ? 450 : 640
+          }}
+        >
           <AssetPreview
             ref={cardRef}
             data={formData}
