@@ -147,7 +147,8 @@ export default function Home() {
 
       // EVENT: Share Attempt
       const { logEvent } = await import("@/app/actions/track-event");
-      await logEvent('share_attempt', undefined, slug, { platform: navigator.share ? 'mobile' : 'desktop' });
+      const isShareSupported = typeof navigator !== 'undefined' && !!(navigator as any).share;
+      await logEvent('share_attempt', undefined, slug, { platform: isShareSupported ? 'mobile' : 'desktop' });
 
       // Step 2 (QR Generation): Generate QR code for the deep link
       try {
@@ -180,7 +181,8 @@ export default function Home() {
 
       // Step 4 (The Fork): Mobile vs Desktop
       // Check if Web Share API is available and can share files
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      const canShare = typeof navigator !== 'undefined' && (navigator as any).canShare && (navigator as any).canShare({ files: [file] });
+      if (canShare) {
         // Mobile Path
         await navigator.share({
           files: [file],
