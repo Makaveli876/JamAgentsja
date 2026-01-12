@@ -1,26 +1,92 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #000000;
+  --foreground: #ffffff;
+
+  /* Cyber-Island Color Tokens */
+  --yard-cyan: #00f2ff;
+  --yard-cyan-rgb: 0, 242, 255;
+  --yard-purple: #bc13fe;
+  --yard-purple-rgb: 188, 19, 254;
+  --yard-gold: #ffd700;
+  --yard-gold-rgb: 255, 215, 0;
+  --yard-green: #00ff41;
+  --yard-green-rgb: 0, 255, 65;
+  --yard-glass: rgba(255, 255, 255, 0.05);
+  --yard-glass-border: rgba(255, 255, 255, 0.1);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+
+  /* Custom Yard Colors */
+  --color-yard-cyan: var(--yard-cyan);
+  --color-yard-purple: var(--yard-purple);
+  --color-yard-gold: var(--yard-gold);
+  --color-yard-green: var(--yard-green);
+
+  /* Font overrides */
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui;
+
+  /* Neon Shadows */
+  --shadow-neon-cyan: 0 0 15px rgba(0, 242, 255, 0.5);
+  --shadow-neon-purple: 0 0 15px rgba(188, 19, 254, 0.5);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer utilities {
+  .glass-card {
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 1.25rem;
+    box-shadow: 0 0 15px rgba(0, 242, 255, 0.1);
+    transition: all 0.3s ease;
+  }
+
+  .neon-glow-cyan {
+    box-shadow: 0 0 15px rgba(0, 242, 255, 0.4);
+    border-color: var(--yard-cyan);
+  }
+
+  .neon-glow-purple {
+    box-shadow: 0 0 15px rgba(188, 19, 254, 0.4);
+    border-color: var(--yard-purple);
+  }
+
+  .text-gradient-yard {
+    background: linear-gradient(to right, #ffd700, #00ff41);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .animate-shimmer {
+    animation: shimmer 3s infinite;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+
+  100% {
+    transform: translateX(100%);
   }
 }
 
 body {
-  background: var(--background);
+  background: #000;
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  min-height: 100vh;
+  /* Dark Ambient Landscape Background */
+  background-image:
+    linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)),
+    url('/background.png');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
 }
