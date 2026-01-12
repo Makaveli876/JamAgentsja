@@ -546,11 +546,11 @@ export default function Home() {
             {/* Overlay Gradient for readability */}
             <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/90" />
 
-            {/* CENTRAL STAGE */}
-            <div className="absolute inset-0 flex items-center justify-center pb-32 px-6">
+            {/* CENTRAL STAGE - Scaled to fit mobile viewport */}
+            <div className="absolute inset-0 flex items-center justify-center pt-20 pb-40 px-6 overflow-hidden pointer-events-none">
               <div className={cn(
-                "shadow-[0_0_50px_rgba(0,0,0,0.5)] transition-all duration-500 will-change-transform origin-center scale-90",
-                isFormOpen ? "opacity-40 scale-75 blur-sm" : "opacity-100"
+                "shadow-[0_0_50px_rgba(0,0,0,0.5)] transition-all duration-500 will-change-transform origin-center",
+                isFormOpen ? "opacity-0 scale-50 blur-xl translate-y-20" : "opacity-100 scale-[0.65] md:scale-100"
               )}>
                 {/* The Asset is always rendered here, purely visual */}
                 <AssetPreview
@@ -578,7 +578,7 @@ export default function Home() {
 
         {/* 2. TOP LOUNGE (Header + Mode Toggle) */}
         {previewImage && (
-          <div className="absolute top-0 inset-x-0 z-40 p-4 pt-safe-top flex flex-col items-center gap-4 bg-gradient-to-b from-black/80 to-transparent">
+          <div className="absolute top-0 inset-x-0 z-40 p-4 pt-safe-top flex flex-col items-center gap-4 bg-gradient-to-b from-black/90 via-black/50 to-transparent">
             <div className="w-full flex justify-between items-center">
               <Header />
               <button
@@ -608,7 +608,10 @@ export default function Home() {
             >
               {!isFormOpen && (
                 <div className="flex gap-2 w-full max-w-xs pointer-events-auto">
-                  <CreateButton className="flex-1 h-16 text-lg shadow-[0_10px_40px_rgba(0,255,100,0.3)]" />
+                  <CreateButton
+                    className="flex-1 h-16 text-lg shadow-[0_10px_40px_rgba(0,255,100,0.3)]"
+                    label={formData.mode === 'status' ? "SEND TO WHATSAPP" : undefined}
+                  />
                   <button
                     onClick={(e) => { e.stopPropagation(); setIsFormOpen(true); }}
                     className="w-16 h-16 bg-white/10 backdrop-blur-xl border border-white/20 rounded-xl flex items-center justify-center text-white"
