@@ -569,7 +569,7 @@ export default function Home() {
                 <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/90" />
                 <div className="absolute inset-0 flex items-center justify-center pt-20 pb-40 px-6 overflow-hidden pointer-events-none">
                   <div className={cn(
-                    "shadow-[0_0_50px_rgba(0,0,0,0.5)] transition-all duration-500 will-change-transform origin-center",
+                    "shadow-[0_0_50px_rgba(0,0,0,0.5)] transition-all duration-500 will-change-transform origin-center w-full max-w-[360px] pointer-events-auto shrink-0",
                     isFormOpen ? "opacity-0 scale-50 blur-xl translate-y-20" : "opacity-100 scale-[0.65] md:scale-100"
                   )}>
                     <AssetPreview
