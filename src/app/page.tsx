@@ -53,6 +53,7 @@ export default function Home() {
   const [zoom, setZoom] = useState(1);
   const [isSharing, setIsSharing] = useState(false);
   const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
+  const [editorTab, setEditorTab] = useState<'details' | 'design'>('details');
   const [isFormOpen, setIsFormOpen] = useState(false); // Mobile Bottom Sheet
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -290,15 +291,12 @@ export default function Home() {
   const FormFields = ({ isMobile = false }) => (
     <div className={cn("space-y-6", isMobile && "pb-32 px-1")}>
 
-      {/* MOBILE INLINE PREVIEW */}
+      {/* MOBILE INLINE PREVIEW (Cleaned) */}
       {isMobile && (
         <div className="mb-6 space-y-4">
           {previewImage && (
             <div className="flex flex-col items-center gap-2 bg-white/5 rounded-2xl border border-white/10 p-2 overflow-hidden shadow-2xl">
-              <span className="text-[10px] font-black text-yard-cyan uppercase tracking-widest animate-pulse w-full text-center flex justify-center items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-yard-cyan"></span>
-                Live Studio View
-              </span>
+              {/* Removed 'Live Studio View' text as requested */}
               <div className="relative w-full flex justify-center scale-[0.65] origin-top h-[420px] -mb-[140px]">
                 <AssetPreview
                   data={formData}
@@ -310,6 +308,7 @@ export default function Home() {
             </div>
           )}
 
+          {/* Mobile Actions Grid */}
           <div className="grid grid-cols-2 gap-3">
             <div
               onClick={() => fileInputRef.current?.click()}
@@ -330,6 +329,7 @@ export default function Home() {
               </div>
             </div>
 
+            {/* Mobile Zoom Trigger (Visual only, maybe moves to Design tab? keeping here for quick access) */}
             <div className="bg-white/5 border border-white/10 rounded-xl p-3 flex flex-col justify-center gap-1">
               <div className="flex justify-between items-center text-[8px] font-bold uppercase tracking-widest">
                 <span className="text-zinc-400">Scale</span>
@@ -349,150 +349,183 @@ export default function Home() {
         </div>
       )}
 
-      {/* INPUTS */}
-      <div className="space-y-2">
-        <div className="flex justify-between items-end">
-          <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest flex items-center gap-1">
-            <Type className="w-3 h-3" /> Item Title
-          </span>
-          <button
-            onClick={handleAIOptimize}
-            disabled={isOptimizing}
-            className="flex items-center gap-1.5 text-[10px] md:text-xs font-bold text-yard-cyan hover:text-yard-green transition-colors disabled:opacity-50 h-7 md:h-9"
-          >
-            {isOptimizing ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
-            AI HOOK
-          </button>
-        </div>
-        <input
-          type="text"
-          value={formData.title}
-          onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-          className="w-full h-12 bg-black/40 border border-white/10 rounded-xl px-4 text-base font-medium text-white focus:outline-none focus:border-yard-gold focus:ring-1 focus:ring-yard-gold/50 transition-all placeholder:text-zinc-700"
-          placeholder="What are you selling?"
-        />
+      {/* TABS (World Class Neat Controls) */}
+      <div className="flex p-1 bg-white/5 rounded-xl border border-white/10 mb-6">
+        <button
+          onClick={() => setEditorTab('details')}
+          className={cn(
+            "flex-1 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all",
+            editorTab === 'details' ? "bg-white text-black shadow-lg" : "text-zinc-500 hover:text-white"
+          )}
+        >
+          Details
+        </button>
+        <button
+          onClick={() => setEditorTab('design')}
+          className={cn(
+            "flex-1 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all",
+            editorTab === 'design' ? "bg-white text-black shadow-lg" : "text-zinc-500 hover:text-white"
+          )}
+        >
+          Visuals
+        </button>
       </div>
 
-      <div className="space-y-2">
-        <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Slogan (Optional)</span>
-        <input
-          type="text"
-          value={formData.slogan}
-          onChange={(e) => setFormData({ ...formData, slogan: e.target.value })}
-          className="w-full h-12 bg-black/40 border border-white/10 rounded-xl px-4 text-base font-medium text-white focus:outline-none focus:border-yard-gold focus:ring-1 focus:ring-yard-gold/50 transition-all placeholder:text-zinc-700"
-          placeholder="Catchy tagline..."
-        />
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest flex items-center gap-1">
-            <Tag className="w-3 h-3" /> Promo Tag
-          </span>
-          <input
-            type="text"
-            value={formData.promoLabel}
-            onChange={(e) => setFormData({ ...formData, promoLabel: e.target.value })}
-            className="w-full h-12 bg-black/40 border border-white/10 rounded-xl px-4 text-base font-bold text-white focus:outline-none focus:border-yard-gold focus:ring-1 focus:ring-yard-gold/50 transition-all"
-          />
-        </div>
-        <div className="space-y-2">
-          <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Price (JMD)</span>
-          <input
-            type="text"
-            value={formData.price}
-            onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-            className="w-full h-12 bg-black/40 border border-white/10 rounded-xl px-4 text-base font-bold text-white focus:outline-none focus:border-yard-gold focus:ring-1 focus:ring-yard-gold/50 transition-all"
-          />
-        </div>
-      </div>
-
-      <div className="space-y-2">
-        <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest flex items-center gap-1">
-          <MapPin className="w-3 h-3" /> Location
-        </span>
-        <input
-          type="text"
-          value={formData.location}
-          onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-          className="w-full h-12 bg-black/40 border border-white/10 rounded-xl px-4 text-base font-bold text-white focus:outline-none focus:border-yard-gold focus:ring-1 focus:ring-yard-gold/50 transition-all"
-          placeholder="e.g. Montego Bay"
-        />
-      </div>
-
-      <div className="space-y-2">
-        <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest flex items-center gap-1">
-          <Phone className="w-3 h-3" /> WhatsApp
-        </span>
-        <input
-          type="text"
-          value={formData.phone}
-          onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-          className="w-full h-12 bg-black/40 border border-white/10 rounded-xl px-4 text-base font-bold text-white focus:outline-none focus:border-yard-gold focus:ring-1 focus:ring-yard-gold/50 transition-all"
-        />
-      </div>
-
-      <div className="space-y-3 pt-2">
-        <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Visual Theme</span>
-        <div className="grid grid-cols-3 gap-2">
-          {(['cyber', 'luxury', 'island'] as const).map((s) => (
-            <button
-              key={s}
-              onClick={() => setFormData({ ...formData, style: s })}
-              className={cn(
-                "style-pill h-10 md:h-12 text-[10px] font-black rounded-lg border uppercase tracking-widest transition-all",
-                formData.style === s
-                  ? s === 'cyber' ? 'active bg-yard-cyan/20 border-yard-cyan text-yard-cyan shadow-[0_0_15px_rgba(0,242,255,0.3)]' :
-                    s === 'luxury' ? 'active bg-yard-gold/20 border-yard-gold text-yard-gold shadow-[0_0_15px_rgba(255,215,0,0.3)]' :
-                      'active bg-yard-green/20 border-yard-green text-yard-green shadow-[0_0_15px_rgba(0,255,65,0.3)]'
-                  : 'text-zinc-500 border-white/5 hover:border-white/20'
-              )}
-            >
-              {s}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="space-y-3">
-        <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest flex items-center gap-1">
-          <Layout className="w-3 h-3" /> Layout
-        </span>
-        <div className="grid grid-cols-3 gap-2">
-          {(['center', 'bottom', 'minimal'] as const).map((l) => (
-            <button
-              key={l}
-              onClick={() => setFormData({ ...formData, layout: l })}
-              className={cn(
-                "style-pill h-10 text-[10px] font-bold rounded-lg border uppercase tracking-widest transition-all",
-                formData.layout === l
-                  ? "bg-white/10 border-white/30 text-white shadow-lg"
-                  : "text-zinc-600 border-white/5 hover:bg-white/5"
-              )}
-            >
-              {l}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {!isMobile && (
-        <div className="bg-white/5 border border-white/10 rounded-xl p-3 flex flex-col gap-2">
-          <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest">
-            <span className="text-zinc-400 flex items-center gap-1"><Maximize className="w-3 h-3" /> Zoom</span>
-            <span className="text-yard-cyan">{Math.round(zoom * 100)}%</span>
+      {/* DETAILS TAB */}
+      {editorTab === 'details' && (
+        <div className="space-y-4 animate-in fade-in slide-in-from-left-4 duration-300">
+          <div className="space-y-2">
+            <div className="flex justify-between items-end">
+              <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest flex items-center gap-1">
+                <Type className="w-3 h-3" /> Item Title
+              </span>
+              <button
+                onClick={handleAIOptimize}
+                disabled={isOptimizing}
+                className="flex items-center gap-1.5 text-[10px] md:text-xs font-bold text-yard-cyan hover:text-yard-green transition-colors disabled:opacity-50 h-7 md:h-9"
+              >
+                {isOptimizing ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
+                AI HOOK
+              </button>
+            </div>
+            <input
+              type="text"
+              value={formData.title}
+              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              className="w-full h-12 bg-black/40 border border-white/10 rounded-xl px-4 text-base font-medium text-white focus:outline-none focus:border-yard-gold focus:ring-1 focus:ring-yard-gold/50 transition-all placeholder:text-zinc-700"
+              placeholder="What are you selling?"
+            />
           </div>
-          <input
-            type="range"
-            min="0.5"
-            max="2"
-            step="0.1"
-            value={zoom}
-            onChange={(e) => setZoom(parseFloat(e.target.value))}
-            className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-yard-cyan"
-          />
+
+          <div className="space-y-2">
+            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Price (JMD)</span>
+            <input
+              type="text"
+              value={formData.price}
+              onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+              className="w-full h-12 bg-black/40 border border-white/10 rounded-xl px-4 text-base font-bold text-white focus:outline-none focus:border-yard-gold focus:ring-1 focus:ring-yard-gold/50 transition-all"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest flex items-center gap-1">
+              <Phone className="w-3 h-3" /> WhatsApp
+            </span>
+            <input
+              type="text"
+              value={formData.phone}
+              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+              className="w-full h-12 bg-black/40 border border-white/10 rounded-xl px-4 text-base font-bold text-white focus:outline-none focus:border-yard-gold focus:ring-1 focus:ring-yard-gold/50 transition-all"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest flex items-center gap-1">
+              <MapPin className="w-3 h-3" /> Location
+            </span>
+            <input
+              type="text"
+              value={formData.location}
+              onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+              className="w-full h-12 bg-black/40 border border-white/10 rounded-xl px-4 text-base font-bold text-white focus:outline-none focus:border-yard-gold focus:ring-1 focus:ring-yard-gold/50 transition-all"
+              placeholder="e.g. Montego Bay"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest flex items-center gap-1">
+                <Tag className="w-3 h-3" /> Promo Tag
+              </span>
+              <input
+                type="text"
+                value={formData.promoLabel}
+                onChange={(e) => setFormData({ ...formData, promoLabel: e.target.value })}
+                className="w-full h-12 bg-black/40 border border-white/10 rounded-xl px-4 text-base font-bold text-white focus:outline-none focus:border-yard-gold focus:ring-1 focus:ring-yard-gold/50 transition-all"
+              />
+            </div>
+            <div className="space-y-2">
+              <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Slogan</span>
+              <input
+                type="text"
+                value={formData.slogan}
+                onChange={(e) => setFormData({ ...formData, slogan: e.target.value })}
+                className="w-full h-12 bg-black/40 border border-white/10 rounded-xl px-4 text-base font-medium text-white focus:outline-none focus:border-yard-gold focus:ring-1 focus:ring-yard-gold/50 transition-all placeholder:text-zinc-700"
+                placeholder="Optional..."
+              />
+            </div>
+          </div>
         </div>
       )}
+
+      {/* DESIGN TAB */}
+      {editorTab === 'design' && (
+        <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+          <div className="space-y-3">
+            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Visual Theme</span>
+            <div className="grid grid-cols-3 gap-2">
+              {(['cyber', 'luxury', 'island'] as const).map((s) => (
+                <button
+                  key={s}
+                  onClick={() => setFormData({ ...formData, style: s })}
+                  className={cn(
+                    "style-pill h-10 md:h-12 text-[10px] font-black rounded-lg border uppercase tracking-widest transition-all",
+                    formData.style === s
+                      ? s === 'cyber' ? 'active bg-yard-cyan/20 border-yard-cyan text-yard-cyan shadow-[0_0_15px_rgba(0,242,255,0.3)]' :
+                        s === 'luxury' ? 'active bg-yard-gold/20 border-yard-gold text-yard-gold shadow-[0_0_15px_rgba(255,215,0,0.3)]' :
+                          'active bg-yard-green/20 border-yard-green text-yard-green shadow-[0_0_15px_rgba(0,255,65,0.3)]'
+                      : 'text-zinc-500 border-white/5 hover:border-white/20'
+                  )}
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest flex items-center gap-1">
+              <Layout className="w-3 h-3" /> Layout
+            </span>
+            <div className="grid grid-cols-3 gap-2">
+              {(['center', 'bottom', 'minimal'] as const).map((l) => (
+                <button
+                  key={l}
+                  onClick={() => setFormData({ ...formData, layout: l })}
+                  className={cn(
+                    "style-pill h-10 text-[10px] font-bold rounded-lg border uppercase tracking-widest transition-all",
+                    formData.layout === l
+                      ? "bg-white/10 border-white/30 text-white shadow-lg"
+                      : "text-zinc-600 border-white/5 hover:bg-white/5"
+                  )}
+                >
+                  {l}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Desktop Zoom (Mobile has it top) */}
+          {!isMobile && (
+            <div className="bg-white/5 border border-white/10 rounded-xl p-3 flex flex-col gap-2">
+              <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest">
+                <span className="text-zinc-400 flex items-center gap-1"><Maximize className="w-3 h-3" /> Zoom</span>
+                <span className="text-yard-cyan">{Math.round(zoom * 100)}%</span>
+              </div>
+              <input
+                type="range"
+                min="0.5"
+                max="2"
+                step="0.1"
+                value={zoom}
+                onChange={(e) => setZoom(parseFloat(e.target.value))}
+                className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-yard-cyan"
+              />
+            </div>
+          )}
+        </div>
+      )}
+
     </div>
   );
 

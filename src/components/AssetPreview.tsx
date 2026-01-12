@@ -171,7 +171,7 @@ export const AssetPreview = forwardRef<HTMLDivElement, AssetPreviewProps>(({ dat
                 )}
                 {/* REMOVED: bg-black/20 overlay that was darkening the image */}
                 {(layout === 'bottom' || layout === 'minimal' || layout === 'center') && (
-                    <div className="absolute bottom-0 w-full h-3/4 bg-gradient-to-t from-black via-black/40 to-transparent z-30 pointer-events-none" />
+                    <div className="absolute bottom-0 w-full h-1/2 bg-gradient-to-t from-black/90 via-black/20 to-transparent z-30 pointer-events-none" />
                 )}
             </div>
 
