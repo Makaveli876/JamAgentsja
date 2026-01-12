@@ -27,8 +27,6 @@ import { StageSuccess } from "@/components/StageSuccess";
 
 import { generateSalesHook } from "@/app/actions/generate-hook";
 import { saveListing } from "@/app/actions/save-listing";
-import html2canvas from "html2canvas";
-import QRCode from "qrcode";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
@@ -170,6 +168,7 @@ export default function Home() {
 
       // Step 2: QR Code
       try {
+        const QRCode = (await import("qrcode")).default;
         const deepLink = `https://jamagents.com/item/${slug}`;
         const qrData = await QRCode.toDataURL(deepLink, { margin: 1, color: { dark: '#000000', light: '#FFFFFFFF' } });
         setQrCodeUrl(qrData);
@@ -180,6 +179,7 @@ export default function Home() {
       }
 
       // Step 3: Generate Image at 4x
+      const html2canvas = (await import("html2canvas")).default;
       const canvas = await html2canvas(cardRef.current, {
         scale: 4,
         useCORS: true,
