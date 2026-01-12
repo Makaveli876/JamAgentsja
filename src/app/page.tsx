@@ -557,102 +557,181 @@ export default function Home() {
       {/* --- STAGE 3: EDITOR (EXISTING UI) --- */}
       {stage === 'editor' && (
         <>
-          {/* MOBILE EDITOR */}
-          <div className="md:hidden fixed inset-0 z-0 flex flex-col">
-            {previewImage ? (
-              <div className="absolute inset-0 z-0 bg-black">
-                <img
-                  src={previewImage}
-                  alt="Back"
-                  className="w-full h-full object-cover blur-[80px] opacity-40 scale-150"
-                />
-                <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/90" />
-                <div className="absolute inset-0 flex items-center justify-center pt-20 pb-40 px-6 overflow-hidden pointer-events-none">
-                  <div className={cn(
-                    "shadow-[0_0_50px_rgba(0,0,0,0.5)] transition-all duration-500 will-change-transform origin-center w-full max-w-[360px] pointer-events-auto shrink-0",
-                    isFormOpen ? "opacity-0 scale-50 blur-xl translate-y-20" : "opacity-100 scale-[0.65] md:scale-100"
-                  )}>
-                    <AssetPreview
-                      data={formData}
-                      previewImage={previewImage}
-                      zoom={zoom}
-                      qrCodeUrl={qrCodeUrl}
-                    />
+          {/* MOBILE EDITOR - SPLIT SCREEN (Canva Style) */}
+          <div className="md:hidden flex flex-col h-[100dvh] bg-black overflow-hidden relative">
+
+            {/* 1. TOP: PREVIEW AREA (Flexible Height) */}
+            <div className="flex-1 relative flex flex-col items-center justify-center p-4 overflow-hidden">
+              {previewImage ? (
+                <>
+                  {/* Blurred Back */}
+                  <div className="absolute inset-0 z-0">
+                    <img src={previewImage} className="w-full h-full object-cover blur-3xl opacity-30" alt="" />
+                    <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-transparent to-black" />
                   </div>
-                </div>
-              </div>
-            ) : (
-              <div className="absolute inset-0 z-0 flex flex-col items-center justify-center p-6 bg-gradient-to-tr from-bg-deep to-[#0f172a]">
-                <Header />
-                <div className="flex-1 flex flex-col justify-center w-full max-w-sm">
-                  <UploadZone className="h-[240px] shadow-2xl bg-white/5 border-white/10" />
-                  <p className="text-center text-zinc-500 text-xs mt-6 px-8 leading-relaxed">
-                    Upload a photo to enter the studio.
-                  </p>
-                </div>
-              </div>
-            )}
 
-            {previewImage && (
-              <div className="absolute top-0 inset-x-0 z-40 p-4 pt-safe-top flex flex-col items-center gap-4 bg-gradient-to-b from-black/90 via-black/50 to-transparent">
-                <div className="w-full flex justify-between items-center">
-                  <Header />
-                  <button
-                    onClick={() => fileInputRef.current?.click()}
-                    className="bg-white/10 p-2 rounded-full backdrop-blur-md border border-white/5"
-                  >
-                    <ImagePlus className="w-5 h-5 text-white" />
-                  </button>
-                </div>
-                <ModeToggle />
-              </div>
-            )}
+                  {/* Header (Floating) */}
+                  <div className="absolute top-0 inset-x-0 z-20 p-4 flex justify-between items-start pt-safe-top">
+                    <Header />
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => fileInputRef.current?.click()}
+                        className="bg-white/10 backdrop-blur-md border border-white/10 p-2.5 rounded-full text-white shadow-lg active:scale-95 transition-transform"
+                      >
+                        <ImagePlus className="w-5 h-5" />
+                      </button>
+                    </div>
+                  </div>
 
-            {previewImage && (
-              <div className={cn(
-                "absolute bottom-0 inset-x-0 z-50 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] flex flex-col",
-                isFormOpen ? "h-[85vh] bg-[#020617]" : "h-auto bg-transparent pointer-events-none"
-              )}>
-                <div
-                  onClick={() => setIsFormOpen(!isFormOpen)}
-                  className={cn(
-                    "w-full p-4 flex flex-col items-center justify-center gap-2 cursor-pointer pointer-events-auto",
-                    isFormOpen ? "bg-[#020617] border-t border-white/5 rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.5)]" : "bg-transparent pb-8"
-                  )}
-                >
-                  {!isFormOpen && (
-                    <div className="flex gap-2 w-full max-w-xs pointer-events-auto">
-                      <CreateButton
-                        className="flex-1 h-16 text-lg shadow-[0_10px_40px_rgba(0,255,100,0.3)]"
-                        label={formData.mode === 'status' ? "GENERATE" : undefined}
+                  {/* Main Preview Card */}
+                  <div className="relative z-10 w-full max-w-[340px] aspect-[9/16] flex items-center justify-center pointer-events-auto">
+                    <div className="origin-center scale-[0.55] sm:scale-75 transition-transform duration-300 ease-out">
+                      <AssetPreview
+                        data={formData}
+                        previewImage={previewImage}
+                        zoom={zoom}
+                        qrCodeUrl={qrCodeUrl}
                       />
-                      <button
-                        onClick={(e) => { e.stopPropagation(); setIsFormOpen(true); }}
-                        className="w-16 h-16 bg-white/10 backdrop-blur-xl border border-white/20 rounded-xl flex items-center justify-center text-white"
-                      >
-                        <ChevronUp className="w-6 h-6 animate-bounce text-yard-cyan" />
-                      </button>
                     </div>
-                  )}
-                  {isFormOpen && <div className="w-12 h-1 bg-white/20 rounded-full mb-2" />}
+                  </div>
+                </>
+              ) : (
+                <div className="absolute inset-0 z-0 flex flex-col items-center justify-center p-6 bg-gradient-to-tr from-bg-deep to-[#0f172a]">
+                  <Header />
+                  <div className="flex-1 flex flex-col justify-center w-full max-w-sm">
+                    <UploadZone className="h-[240px] shadow-2xl bg-white/5 border-white/10" />
+                    <p className="text-center text-zinc-500 text-xs mt-6 px-8 leading-relaxed">
+                      Upload a photo to enter the studio.
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* 2. BOTTOM: CONTROLS (Fixed Height Sheet) */}
+            {previewImage && (
+              <div className="h-[55%] bg-[#0f172a] rounded-t-[2.5rem] shadow-[0_-10px_40px_rgba(0,0,0,0.5)] border-t border-white/10 flex flex-col relative z-30 animate-in slide-in-from-bottom-20 duration-500">
+                {/* Drag Indicator (Visual Only) */}
+                <div className="w-full h-6 flex items-center justify-center shrink-0">
+                  <div className="w-12 h-1 bg-white/20 rounded-full" />
                 </div>
 
-                {isFormOpen && (
-                  <div className="flex-1 overflow-y-auto px-6 pb-24 animate-in fade-in slide-in-from-bottom-10 duration-300">
-                    <div className="flex justify-between items-center mb-6">
-                      <h2 className="text-sm font-bold text-zinc-400 uppercase tracking-widest">Editor Studio</h2>
+                {/* Controls Container */}
+                <div className="flex-1 flex flex-col min-h-0">
+                  {/* Tabs - Sticky Top of Panel */}
+                  <div className="px-6 pb-4 shrink-0">
+                    <div className="flex p-1 bg-black/40 rounded-xl border border-white/5">
                       <button
-                        onClick={() => setIsFormOpen(false)}
-                        className="p-2 -mr-2 text-zinc-500 hover:text-white"
+                        onClick={() => setEditorTab('details')}
+                        className={cn(
+                          "flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all",
+                          editorTab === 'details' ? "bg-white text-black shadow-lg" : "text-zinc-500 hover:text-white"
+                        )}
                       >
-                        <ChevronDown className="w-5 h-5" />
+                        Details
+                      </button>
+                      <button
+                        onClick={() => setEditorTab('design')}
+                        className={cn(
+                          "flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all",
+                          editorTab === 'design' ? "bg-white text-black shadow-lg" : "text-zinc-500 hover:text-white"
+                        )}
+                      >
+                        Visuals
                       </button>
                     </div>
-                    <FormFields />
-                    <div className="h-8" />
-                    <CreateButton className="mb-8" />
                   </div>
-                )}
+
+                  {/* Scrollable Form Area */}
+                  <div className="flex-1 overflow-y-auto px-6 pb-24 overflow-x-hidden">
+                    {editorTab === 'details' ? (
+                      <div className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-300">
+                        {/* Title Input */}
+                        <div className="space-y-2">
+                          <div className="flex justify-between items-end">
+                            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Item Title</span>
+                            <button onClick={handleAIOptimize} disabled={isOptimizing} className="text-[10px] font-bold text-yard-cyan flex items-center gap-1">
+                              {isOptimizing ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />} AI Hook
+                            </button>
+                          </div>
+                          <input type="text" value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                            className="w-full h-12 bg-black/40 border border-white/10 rounded-xl px-4 text-white font-medium focus:border-yard-cyan transition-colors" placeholder="e.g. 2015 Honda Fit" />
+                        </div>
+
+                        {/* Price & Promo Grid */}
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Price</span>
+                            <input type="text" value={formData.price} onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                              className="w-full h-12 bg-black/40 border border-white/10 rounded-xl px-4 text-white font-bold" />
+                          </div>
+                          <div className="space-y-2">
+                            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Promo</span>
+                            <input type="text" value={formData.promoLabel} onChange={(e) => setFormData({ ...formData, promoLabel: e.target.value })}
+                              className="w-full h-12 bg-black/40 border border-white/10 rounded-xl px-4 text-white" />
+                          </div>
+                        </div>
+
+                        {/* Phone & Location */}
+                        <div className="space-y-2">
+                          <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Phone</span>
+                          <input type="text" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                            className="w-full h-12 bg-black/40 border border-white/10 rounded-xl px-4 text-white font-medium" />
+                        </div>
+                        <div className="space-y-2">
+                          <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Location</span>
+                          <input type="text" value={formData.location} onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                            className="w-full h-12 bg-black/40 border border-white/10 rounded-xl px-4 text-white font-medium" />
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+                        {/* Theme Selector */}
+                        <div className="space-y-3">
+                          <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Theme</span>
+                          <div className="grid grid-cols-3 gap-2">
+                            {(['cyber', 'luxury', 'island'] as const).map(s => (
+                              <button key={s} onClick={() => setFormData({ ...formData, style: s })}
+                                className={cn("h-10 rounded-lg border text-[10px] font-black uppercase tracking-widest transition-all",
+                                  formData.style === s ? "bg-white text-black border-white" : "border-white/10 text-zinc-500")}>
+                                {s}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Layout Selector */}
+                        <div className="space-y-3">
+                          <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Layout</span>
+                          <div className="grid grid-cols-3 gap-2">
+                            {(['center', 'bottom', 'minimal'] as const).map(l => (
+                              <button key={l} onClick={() => setFormData({ ...formData, layout: l })}
+                                className={cn("h-10 rounded-lg border text-[10px] font-bold uppercase tracking-widest transition-all",
+                                  formData.layout === l ? "bg-white/10 text-white border-white/30" : "border-white/10 text-zinc-500")}>
+                                {l}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Zoom Slider */}
+                        <div className="space-y-3">
+                          <div className="flex justify-between">
+                            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Zoom</span>
+                            <span className="text-[10px] font-bold text-yard-cyan">{Math.round(zoom * 100)}%</span>
+                          </div>
+                          <input type="range" min="0.5" max="2" step="0.1" value={zoom} onChange={(e) => setZoom(parseFloat(e.target.value))}
+                            className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-yard-cyan" />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Sticky Generate Button (Bottom) */}
+                <div className="absolute bottom-0 inset-x-0 p-4 pt-8 bg-gradient-to-t from-[#0f172a] via-[#0f172a] to-transparent z-40">
+                  <CreateButton className="shadow-[0_0_30px_rgba(34,197,94,0.3)] hover:shadow-[0_0_50px_rgba(34,197,94,0.5)] active:scale-[0.98]" />
+                </div>
               </div>
             )}
           </div>
