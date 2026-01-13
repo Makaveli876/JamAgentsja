@@ -66,10 +66,21 @@ export async function GET(request: Request) {
 
         const { headline, price, image_url, parish } = listing;
 
-        // Resolve Image or Default Gradient
-        const bgImage = image_url
-            ? `url(${image_url})`
-            : 'linear-gradient(to bottom right, #111827, #000000)';
+        // Resolve Image via ArrayBuffer for Satori stability
+        let imageData: ArrayBuffer | null = null;
+        if (image_url) {
+            try {
+                const imgRes = await fetch(image_url);
+                if (imgRes.ok) {
+                    imageData = await imgRes.arrayBuffer();
+                }
+            } catch (ignore) { }
+        }
+
+        // Use raw image data if available, otherwise gradient
+        const bgStyle: any = imageData
+            ? { backgroundImage: `url(data:image/png;base64,${Buffer.from(imageData).toString('base64')})` }
+            : { backgroundImage: 'linear-gradient(to bottom right, #111827, #000000)' };
 
         return new ImageResponse(
             (
@@ -80,7 +91,7 @@ export async function GET(request: Request) {
                         display: 'flex',
                         flexDirection: 'column',
                         justifyContent: 'space-between',
-                        backgroundImage: bgImage,
+                        ...bgStyle,
                         backgroundSize: 'cover',
                         backgroundPosition: 'center',
                         color: 'white',

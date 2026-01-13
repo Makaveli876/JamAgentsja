@@ -80,7 +80,7 @@ export default async function Page({ params }: { params: { slug: string } }) {
     // Protocol Message: "Hi! 👋 I'm interested in your listing: 📦 {headline} 💰 {price} I found it on JAM Agents."
     const message = `Hi! 👋\n\nI'm interested in your listing:\n📦 ${listing.headline}\n💰 ${listing.price}\n\nI found it on JAM Agents.`;
 
-    const whatsappUrl = `https://wa.me/${normalizedPhone}?text=${encodeURIComponent(message)}`;
+    const whatsappUrl = `https://api.whatsapp.com/send?phone=${normalizedPhone}&text=${encodeURIComponent(message)}`;
 
     return (
         <main className="min-h-screen bg-black text-white relative overflow-hidden flex flex-col items-center">
