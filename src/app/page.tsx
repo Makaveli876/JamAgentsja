@@ -372,51 +372,72 @@ const CreatorScreen = ({ userIntent, onBack, onExport }: { userIntent: any, onBa
 
     setIsGeneratingInfo(true);
 
+    let finalSlug = '';
+    let finalListingUrl = '';
+
     try {
       // 1. Generate Slug
-      const slug = generateSlug(headline);
-      const listingUrl = `https://jamagents.com/item/${slug}`;
+      finalSlug = generateSlug(headline);
+      finalListingUrl = `https://jamagents.com/item/${finalSlug}`;
 
       // 2. Generate Real QR Code
-      const QRCode = (await import("qrcode")).default;
-      const qrData = await QRCode.toDataURL(listingUrl, { margin: 1, color: { dark: '#000000', light: '#FFFFFFFF' } });
-      setQrCodeData(qrData);
-
-      // 3. Save Listing (The Trap) - Non-blocking ideally, but we await for safety
       try {
-        await saveListing({
-          title: headline,
-          price: price,
-          phone: "8765555555", // Should add phone input, but defaulting for prototype
-          location: "Jamaica",
-          style: currentTheme.id,
-          status: 'active',
-          slug: slug
-          // photo_url could be uploaded here
+        const QRCode = (await import("qrcode")).default;
+        // Use error correction level 'M' for better scannability
+        const qrData = await QRCode.toDataURL(finalListingUrl, {
+          margin: 0,
+          width: 100,
+          color: { dark: '#000000', light: '#FFFFFFFF' }
         });
-
-        // Log event
-        const { logEvent } = await import("@/app/actions/track-event");
-        await logEvent('flyer_created', undefined, slug, { price, subtext, theme: currentTheme.name, intent: userIntent?.id });
-
-      } catch (e) {
-        console.error("Trap warning:", e);
+        setQrCodeData(qrData);
+      } catch (qrErr) {
+        console.warn("QR Generation failed, proceeding without it:", qrErr);
       }
 
-      // 4. Capture Image (Wait for QR render)
-      await new Promise(r => setTimeout(r, 500)); // Wait for QR state update
-      const html2canvas = (await import("html2canvas")).default;
+      // 3. Save Listing (The Trap)
+      // We don't await this to block the UI, but we trigger it
+      saveListing({
+        title: headline,
+        price: price,
+        phone: "8765555555",
+        location: "Jamaica",
+        style: currentTheme.id,
+        status: 'active',
+        slug: finalSlug
+      }).catch(err => console.error("Background Save Error:", err));
 
-      const canvas = await html2canvas(captureRef.current!, {
-        scale: 3, // High Res
-        useCORS: true,
-        backgroundColor: '#000000',
-        allowTaint: true,
-        logging: false
-      });
+      // Log event
+      const { logEvent } = await import("@/app/actions/track-event");
+      logEvent('flyer_created', undefined, finalSlug, { price, subtext, theme: currentTheme.name, intent: userIntent?.id }).catch(console.error);
 
-      const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/png'));
-      const imageUrl = URL.createObjectURL(blob!);
+      // 4. Capture Image
+      // Wait a tick for the QR code state to render into the DOM
+      await new Promise(r => setTimeout(r, 800));
+
+      let imageUrl = uploadedImage; // Default fallback
+
+      try {
+        if (captureRef.current) {
+          const html2canvas = (await import("html2canvas")).default;
+          const canvas = await html2canvas(captureRef.current, {
+            scale: 2, // Slightly lower scale for stability (was 3)
+            useCORS: true,
+            backgroundColor: '#000000',
+            allowTaint: true,
+            logging: false,
+            // Simplify rendering to avoid crashes
+            ignoreElements: (element) => element.tagName === 'VIDEO'
+          });
+
+          const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/png', 0.9));
+          if (blob) {
+            imageUrl = URL.createObjectURL(blob);
+          }
+        }
+      } catch (canvasErr) {
+        console.error("Canvas capture failed, using raw image:", canvasErr);
+        // We continue with uploadedImage as fallback
+      }
 
       // 5. Navigate
       onExport({
@@ -424,14 +445,27 @@ const CreatorScreen = ({ userIntent, onBack, onExport }: { userIntent: any, onBa
         subtext,
         price,
         image: uploadedImage,
-        listingUrl,
-        slug,
-        capturedImage: imageUrl // Pass the generated flyer
+        listingUrl: finalListingUrl,
+        slug: finalSlug,
+        capturedImage: imageUrl
       });
 
     } catch (err) {
-      console.error("Export failed", err);
-      alert("Could not generate flyer. Try again.");
+      console.error("Critical Export Error:", err);
+      // Even if everything explodes, try to show the success screen
+      if (finalListingUrl) {
+        onExport({
+          headline,
+          subtext: "Error generating preview",
+          price,
+          image: uploadedImage,
+          listingUrl: finalListingUrl,
+          slug: finalSlug,
+          capturedImage: uploadedImage
+        });
+      } else {
+        alert("Something went wrong. Please check your connection and try again.");
+      }
     } finally {
       setIsGeneratingInfo(false);
     }
@@ -440,14 +474,14 @@ const CreatorScreen = ({ userIntent, onBack, onExport }: { userIntent: any, onBa
   const currentFormat = allFormats[activeFormat] || allFormats.post;
 
   return (
-    <div className="flex-1 flex flex-col md:flex-row h-screen relative bg-[#030712] overflow-hidden">
+    <div className="flex-1 flex flex-col md:flex-row-reverse h-screen relative bg-[#030712] overflow-hidden">
       <CyberBackground />
       <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
 
       {/* Header - Hides when controls open */}
       <header
         className={cn(
-          "flex-shrink-0 px-4 py-4 flex justify-between items-center bg-[#030712]/80 backdrop-blur-md absolute top-0 left-0 right-0 z-40 transition-all duration-500 md:right-[420px] md:translate-y-0 md:opacity-100 md:bg-transparent",
+          "flex-shrink-0 px-4 py-4 flex justify-between items-center bg-[#030712]/80 backdrop-blur-md absolute top-0 left-0 right-0 z-40 transition-all duration-500 md:left-[420px] md:right-0 md:translate-y-0 md:opacity-100 md:bg-transparent",
           isControlsOpen && typeof window !== 'undefined' && window.innerWidth < 768 ? "-translate-y-full opacity-0" : "translate-y-0 opacity-100"
         )}
       >
