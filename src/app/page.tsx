@@ -10,6 +10,8 @@ import {
 } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import { saveListing } from "@/app/actions/save-listing";
+import { uploadImageServer } from "@/app/actions/upload-image";
+import { validateJamaicaPhone } from "@/lib/validators";
 
 // --- TYPES & DATA ---
 const USER_INTENTS = [
@@ -293,6 +295,7 @@ const CreatorScreen = ({ userIntent, onBack, onExport }: { userIntent: any, onBa
   const [headline, setHeadline] = useState(userIntent?.examples?.[0] || 'Your Product');
   const [subtext, setSubtext] = useState('Quality guaranteed • Fast delivery');
   const [price, setPrice] = useState('1,200'); // Clean number for easier processing
+  const [whatsapp, setWhatsapp] = useState('');
 
   // Text Size
   const [headlineSize, setHeadlineSize] = useState(24);
@@ -370,6 +373,13 @@ const CreatorScreen = ({ userIntent, onBack, onExport }: { userIntent: any, onBa
       return;
     }
 
+    const phoneValidation = validateJamaicaPhone(whatsapp || '8765555555'); // Fallback for dev, but user should input
+    if (whatsapp && !phoneValidation.valid) {
+      alert(phoneValidation.error || "Invalid Phone Number");
+      return;
+    }
+    const finalPhone = phoneValidation.normalized || '18765555555';
+
     setIsGeneratingInfo(true);
 
     let finalSlug = '';
@@ -383,16 +393,6 @@ const CreatorScreen = ({ userIntent, onBack, onExport }: { userIntent: any, onBa
       // 2. Start Critical Tasks (Parallel)
       // We start both QR gen and DB save now.
       // We MUST await the DB save to ensure the link works.
-      const savePromise = saveListing({
-        title: headline,
-        price: price,
-        phone: "8765555555",
-        location: "Jamaica",
-        style: currentTheme.id,
-        status: 'active',
-        slug: finalSlug
-      });
-
       const qrPromise = (async () => {
         try {
           const QRCode = (await import("qrcode")).default;
@@ -408,8 +408,51 @@ const CreatorScreen = ({ userIntent, onBack, onExport }: { userIntent: any, onBa
         }
       })();
 
-      // Await both - Critical for Link Validity
-      const [saveResult, qrData] = await Promise.all([savePromise, qrPromise]);
+      // 3. IMAGE UPLOAD (The Hydration Fix)
+      // We start this in parallel too, or await it if we strictly need the URL for the DB.
+      // Based on the protocol: "New Flow: Upload -> Get URL -> Save DB".
+      // So we must await upload BEFORE saveListing if we want the URL in the DB.
+
+      let publicImageUrl = null;
+      if (uploadedImage) {
+        try {
+          // Convert Data URL to Blob
+          const response = await fetch(uploadedImage);
+          const blob = await response.blob();
+
+          // Prepare FormData for Server Action (The Ghost Upload)
+          const formData = new FormData();
+          formData.append("file", blob, "hero.png");
+          formData.append("slug", finalSlug);
+
+          const uploadResult = await uploadImageServer(formData);
+
+          if (uploadResult.success && uploadResult.url) {
+            publicImageUrl = uploadResult.url;
+            console.log("Ghost Upload Success:", publicImageUrl);
+          } else {
+            console.error("Ghost Upload Failed:", uploadResult.error);
+          }
+        } catch (uploadErr) {
+          console.error("Image upload failed:", uploadErr);
+        }
+      }
+
+      // 4. SAVE TO DB (With persistent Image URL)
+      const saveResult = await saveListing({
+        title: headline,
+        price: price,
+        phone: finalPhone,
+        location: "Jamaica", // Placeholder until Phase 3
+        style: currentTheme.id,
+        status: 'active',
+        slug: finalSlug,
+        photo_url: publicImageUrl || undefined,
+        whatsapp: finalPhone // Send explicit whatsapp field
+      });
+
+      // Await QR (it might be done already)
+      const qrData = await qrPromise;
 
       if (!saveResult.success) {
         console.error("DB Save Failed:", saveResult.error);
@@ -787,6 +830,19 @@ const CreatorScreen = ({ userIntent, onBack, onExport }: { userIntent: any, onBa
                   </div>
                 </div>
               ))}
+
+              {/* WhatsApp Input */}
+              <div className="flex gap-2">
+                <input
+                  value={whatsapp}
+                  onChange={(e) => setWhatsapp(e.target.value)}
+                  placeholder="WhatsApp (e.g. 876-555-1234)"
+                  className="flex-1 rounded-xl px-4 py-3 text-white placeholder-zinc-600 focus:outline-none text-sm font-bold bg-[#111] border border-white/10 focus:border-green-500/50 transition-colors"
+                />
+                <div className="flex items-center px-4 rounded-xl bg-green-500/10 border border-green-500/20">
+                  <Phone className="w-4 h-4 text-green-500" />
+                </div>
+              </div>
             </div>
           )}
 

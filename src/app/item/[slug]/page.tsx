@@ -13,10 +13,12 @@ interface Listing {
     headline: string;
     price: string;
     parish: string;
-    whatsapp: string;
+    whatsapp: string | null;
     theme: string;
     image_url?: string;
     slug: string;
+    views: number;
+    created_at: string;
 }
 
 // SEO Metadata support
@@ -26,7 +28,9 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 
     if (!listing) return { title: 'Item Not Found' };
 
-    const images = listing.image_url ? [{ url: listing.image_url, width: 1200, height: 1200, alt: listing.headline }] : [];
+    // Dynamic OG Image
+    const ogImage = `/api/og?slug=${slug}`;
+    const images = [{ url: ogImage, width: 1200, height: 630, alt: listing.headline }];
 
     return {
         title: `${listing.headline} | Yard Wire`,
@@ -70,9 +74,13 @@ export default async function Page({ params }: { params: { slug: string } }) {
     // Given "Fast" requirement, awaiting a DB insert (10-50ms) is acceptable for analytics accuracy.
     await trackVisit(listing.id, slug);
 
-    const whatsappUrl = `https://wa.me/${listing.whatsapp.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(
-        `Hi, I saw your listing on Yard Wire: ${listing.headline} (${listing.price}). Is it still available? https://jamagents.com/item/${slug}`
-    )}`;
+    const normalizedPhone = listing.whatsapp ? listing.whatsapp.replace(/[^0-9]/g, '') : '18765555555'; // Fallback to generic if missing
+
+    // Deep Link Format: https://wa.me/{normalized_number}?text={encoded_message}
+    // Protocol Message: "Hi! 👋 I'm interested in your listing: 📦 {headline} 💰 {price} I found it on JAM Agents."
+    const message = `Hi! 👋\n\nI'm interested in your listing:\n📦 ${listing.headline}\n💰 ${listing.price}\n\nI found it on JAM Agents.`;
+
+    const whatsappUrl = `https://wa.me/${normalizedPhone}?text=${encodeURIComponent(message)}`;
 
     return (
         <main className="min-h-screen bg-black text-white relative overflow-hidden flex flex-col items-center">
@@ -134,12 +142,16 @@ export default async function Page({ params }: { params: { slug: string } }) {
                             <span className="text-[10px] uppercase tracking-[0.3em] text-zinc-500 font-bold">Featured Listing</span>
                             <div className="flex items-center gap-1 text-zinc-400 text-xs">
                                 <MapPin className="w-3 h-3" />
-                                {listing.parish}
+                                {listing.parish || 'Jamaica'}
                             </div>
                         </div>
                         <h1 className="text-4xl font-black leading-[0.9] text-white tracking-tight uppercase">
                             {listing.headline}
                         </h1>
+                        <div className="flex items-center gap-4 text-xs font-medium text-zinc-500 mt-2">
+                            <span className="flex items-center gap-1"><span className="text-zinc-600">📅</span> {new Date(listing.created_at).toLocaleDateString()}</span>
+                            <span className="flex items-center gap-1"><span className="text-zinc-600">👀</span> {listing.views || 0} views</span>
+                        </div>
                     </div>
 
                     <div className="h-px w-full bg-gradient-to-r from-transparent via-white/20 to-transparent" />

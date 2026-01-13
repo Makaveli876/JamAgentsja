@@ -11,6 +11,7 @@ export async function saveListing(formData: {
     photo_url?: string;
     slug?: string;
     status?: string;
+    whatsapp?: string;
 }) {
     console.log('=== SAVE LISTING DEBUG ===');
     console.log('ENV CHECK:', {
@@ -49,7 +50,7 @@ export async function saveListing(formData: {
         slug: slug,
         headline: formData.title,
         price: formData.price,
-        whatsapp: formData.phone,
+        whatsapp: formData.whatsapp || formData.phone, // Prioritize explicit whatsapp, fallback to phone
         parish: formData.location,
         theme: formData.style,
         image_url: formData.photo_url || null,
