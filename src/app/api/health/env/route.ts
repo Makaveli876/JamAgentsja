@@ -5,13 +5,19 @@ import { NextResponse } from 'next/server';
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
-    // LOCK DOWN: Require Secret
+    // LOCK DOWN: Require HEALTH_SECRET
     const secret = request.headers.get('x-health-secret');
-    const validSecret = process.env.SEED_SECRET; // Reuse Seed Secret for Admin Access
+    const validSecret = process.env.HEALTH_SECRET;
 
+    // Case A: Missing Header -> 404 (Hidden)
+    if (!secret) return new NextResponse("Not Found", { status: 404 });
+
+    // Case B: Wrong Header -> 401 (Unauthorized)
     if (!validSecret || secret !== validSecret) {
-        // Return 404 in production to hide existence, 401 in dev
-        return new NextResponse("Not Found", { status: 404 });
+        return new NextResponse(JSON.stringify({ error: "Unauthorized" }), {
+            status: 401,
+            headers: { 'Content-Type': 'application/json' }
+        });
     }
 
     return NextResponse.json({

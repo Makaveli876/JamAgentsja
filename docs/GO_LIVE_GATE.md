@@ -27,18 +27,39 @@ Build is verified. Rate limits are persistent. Security gates are active.
 - [x] **Scenario C**: Upload 1MB+ file (Blocked - 413 "File too large").
 
 ## 5. Automated Verification (Evidence)
+```
+
+## 5. Automated Verification (Evidence)
 ```text
 ┌─────────────┬───────────────────────────────┐
 │ Check       │ Result                        │
-├─────────────┼───────────────────────────────┤
-│ build       │ PASS (Exit 0)                 │
-│ rateLimit   │ PASS (429 at req #6)          │
-│ uploadLimit │ PASS (413 Payload Too Large)  │
-│ canonical   │ PASS (https://jamagents.com)  │
-│ seedAuth    │ PASS (401 -> 200 -> 200)      │
-└─────────────┴───────────────────────────────┘
+33: ├─────────────┼───────────────────────────────┤
+34: │ build       │ PASS (Exit 0)                 │
+35: │ rateLimit   │ PASS (429 at req #6)          │
+36: │ uploadLimit │ PASS (413 Payload Too Large)  │
+37: │ canonical   │ PASS (https://jamagents.com)  │
+38: │ seedAuth    │ PASS (401 -> 200 -> 200)      │
+39: └─────────────┴───────────────────────────────┘
+40: ```
 
-### Rate Limit Proof (Run 201)
+### Production Evidence (Run 502)
+**Target**: `https://www.jamagents.com` (Prod)
+**Date**: 2026-01-13
+**Status**: **PASS** (Full Security Lock / Fail Closed)
+
+All checks passed or failed-closed securely on the live production environment.
+
+**Log Snapshot**:
+```text
+[INFO] RUN_ID: 502
+✅ Health Lock: 404 (Hidden/Protected)
+✅ Rate Limit Triggered at Req #49 (Persistence & Threshold Verified)
+✅ 429 Body: {"error":"Daily limit reached (IP)"}
+✅ Seed Route: 401 (Protected)
+✅ Test Routes: 404 (Disabled)
+```
+
+### Localhost Evidence (Run 201)
 Verified 2026-01-13 (Fresh Key 10.0.0.201):
 ```text
 [INFO] Sending Stable Headers: x-forwarded-for=10.0.0.201
