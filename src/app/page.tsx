@@ -559,211 +559,169 @@ export default function Home() {
         <>
           {/* MOBILE EDITOR - SPLIT SCREEN (Canva Style) */}
           {/* MOBILE EDITOR - CREATOR CANVAS (World Class) */}
-          <div className="md:hidden flex flex-col h-[100dvh] bg-[#0d0d0d] overflow-hidden relative font-sans">
+          {/* MOBILE EDITOR - IMMERSIVE SCROLL (Safe Stack) */}
+          <div className="md:hidden flex flex-col min-h-[100dvh] bg-[#0d0d0d] relative font-sans pb-40">
 
-            {/* HEADER */}
-            <header className="flex-shrink-0 flex items-center justify-between p-4 pt-safe-top z-10 bg-[#0d0d0d]">
+            {/* TOP HEADER (Fixed) */}
+            <div className="sticky top-0 left-0 right-0 z-50 bg-[#0d0d0d]/80 backdrop-blur-md p-4 pt-safe-top border-b border-white/5 flex justify-between items-center">
               <Header />
               <div className="flex gap-2">
+                {/* Mode Toggle Mini */}
+                <div className="flex bg-black/50 rounded-full border border-white/10 p-1 mr-2">
+                  {(['status', 'post', 'flyer'] as const).map((m) => (
+                    <button key={m} onClick={() => setFormData(prev => ({ ...prev, mode: m }))}
+                      className={cn("px-2 py-1 rounded-full text-[10px] font-black uppercase tracking-widest transition-all",
+                        formData.mode === m ? "bg-white text-black" : "text-zinc-500"
+                      )}>
+                      {m === 'status' ? 'S' : m === 'post' ? 'P' : 'F'}
+                    </button>
+                  ))}
+                </div>
                 <button
                   onClick={() => fileInputRef.current?.click()}
-                  className="bg-[#222] border-2 border-[#333] w-10 h-10 flex items-center justify-center rounded-lg active:scale-95 transition-all shadow-[4px_4px_0px_#000]"
+                  className="bg-[#222] border-2 border-[#333] w-9 h-9 flex items-center justify-center rounded-lg active:scale-95 transition-all"
                 >
-                  <ImagePlus className="w-5 h-5 text-yard-cyan" />
+                  <ImagePlus className="w-4 h-4 text-yard-cyan" />
                 </button>
               </div>
-            </header>
+            </div>
 
-            {/* SCROLLABLE CONTENT */}
-            <main className="flex-1 overflow-y-auto overflow-x-hidden pb-32">
-              <div className="px-4 py-2 space-y-6">
+            {/* MAIN SCROLLABLE CONTENT */}
+            <div className="flex-1 flex flex-col p-4 gap-6">
 
-                {/* 1. MURAL FRAME (Preview) - Never Collapses */}
-                <div className="relative w-full aspect-[9/16] max-h-[50vh] bg-[#222] border-4 border-[#333] shadow-[inset_0_0_50px_rgba(0,0,0,0.8)] overflow-hidden rounded-xl">
-                  {/* Glow Effects */}
-                  <div className="absolute -top-4 -left-4 w-20 h-20 bg-yard-cyan/20 blur-xl rounded-full pointer-events-none" />
-                  <div className="absolute -bottom-4 -right-4 w-20 h-20 bg-yard-gold/20 blur-xl rounded-full pointer-events-none" />
+              {/* 1. MURAL (Preview) - Full Visibility */}
+              <div className="w-full relative flex justify-center z-0">
+                {/* Glow Underlay */}
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3/4 h-3/4 bg-yard-cyan/10 blur-[50px] rounded-full pointer-events-none" />
 
-                  {previewImage ? (
-                    <div className="w-full h-full flex items-center justify-center relative z-10">
-                      <div className="scale-[0.6] origin-center shadow-2xl">
-                        <AssetPreview
-                          data={formData}
-                          previewImage={previewImage}
-                          zoom={zoom}
-                          qrCodeUrl={qrCodeUrl}
-                        />
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="w-full h-full flex flex-col items-center justify-center text-zinc-600 gap-2">
-                      <Camera className="w-12 h-12 opacity-50" />
-                      <span className="text-xs font-black tracking-widest uppercase">No Signal</span>
-                    </div>
-                  )}
-
-                  {/* Live Badge */}
-                  <div className="absolute top-3 left-3 bg-black/80 border border-yard-cyan/50 px-2 py-1 flex items-center gap-1.5 z-20">
-                    <div className="w-1.5 h-1.5 bg-yard-cyan rounded-full animate-pulse" />
-                    <span className="text-[10px] font-bold text-yard-cyan tracking-widest uppercase">Live</span>
+                {previewImage ? (
+                  <div className="relative z-10 scale-[0.9] origin-top transform-gpu transition-all duration-300">
+                    <AssetPreview
+                      data={formData}
+                      previewImage={previewImage}
+                      zoom={zoom}
+                      qrCodeUrl={qrCodeUrl}
+                    />
                   </div>
+                ) : (
+                  <div className="w-full aspect-[9/16] max-h-[60vh] bg-[#1a1a1a] border-2 border-dashed border-[#333] rounded-2xl flex flex-col items-center justify-center gap-4 cursor-pointer active:bg-[#222] transition-colors"
+                    onClick={() => fileInputRef.current?.click()}>
+                    <div className="w-16 h-16 rounded-full bg-[#111] border border-[#333] flex items-center justify-center">
+                      <Camera className="w-6 h-6 text-zinc-600" />
+                    </div>
+                    <span className="text-xs font-black text-zinc-600 uppercase tracking-widest">Tap to Upload Photo</span>
+                  </div>
+                )}
+              </div>
+
+              {/* 2. CONTROLS FORM */}
+              <div className="flex flex-col gap-6 z-10 relative">
+                {/* Tabs */}
+                <div className="flex rounded-xl bg-[#111] border border-white/5 p-1">
+                  <button onClick={() => setEditorTab('details')}
+                    className={cn("flex-1 py-3 rounded-lg text-xs font-black uppercase tracking-widest transition-all",
+                      editorTab === 'details' ? "bg-[#222] text-white shadow-lg" : "text-zinc-500")}>
+                    Details
+                  </button>
+                  <button onClick={() => setEditorTab('design')}
+                    className={cn("flex-1 py-3 rounded-lg text-xs font-black uppercase tracking-widest transition-all",
+                      editorTab === 'design' ? "bg-[#222] text-yard-cyan shadow-lg" : "text-zinc-500")}>
+                    Visuals
+                  </button>
                 </div>
 
-                {/* 2. CONTROLS CONTAINER */}
-                <div className="flex flex-col gap-6">
-
-                  {/* Big Tabs */}
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => setEditorTab('details')}
-                      className={cn(
-                        "flex-1 py-3 text-sm font-black italic tracking-tighter border-b-4 transition-all",
-                        editorTab === 'details'
-                          ? "border-yard-gold text-white bg-white/5"
-                          : "border-[#333] text-zinc-600 hover:text-zinc-400"
-                      )}
-                    >
-                      DETAILS
-                    </button>
-                    <button
-                      onClick={() => setEditorTab('design')}
-                      className={cn(
-                        "flex-1 py-3 text-sm font-black italic tracking-tighter border-b-4 transition-all",
-                        editorTab === 'design'
-                          ? "border-yard-cyan text-white bg-white/5"
-                          : "border-[#333] text-zinc-600 hover:text-zinc-400"
-                      )}
-                    >
-                      VISUALS
-                    </button>
-                  </div>
-
-                  {/* Tab Content */}
+                {/* FIELDS */}
+                <div className="space-y-4">
                   {editorTab === 'details' ? (
-                    <div className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-300">
-
-                      {/* Item Title Group */}
-                      <div className="space-y-1">
-                        <div className="flex justify-between items-end px-1">
-                          <label className="text-[10px] font-black text-yard-cyan tracking-widest uppercase">What's the Vibe?</label>
-                          <button onClick={handleAIOptimize} disabled={isOptimizing} className="text-[10px] font-black text-yard-gold uppercase tracking-widest hover:underline flex items-center gap-1">
-                            {isOptimizing ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />} Magic Hook
+                    <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                      <FormInput
+                        label="Title"
+                        value={formData.title}
+                        onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                        placeholder="What is it?"
+                        icon={<Type className="w-3 h-3" />}
+                        action={
+                          <button onClick={handleAIOptimize} disabled={isOptimizing} className="text-[10px] font-black text-yard-cyan flex items-center gap-1 bg-[#1a1a1a] px-2 py-1 rounded">
+                            {isOptimizing ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />} AI
                           </button>
-                        </div>
-                        <input
-                          type="text"
-                          value={formData.title}
-                          onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                          className="w-full h-14 bg-[#1a1a1a] border-2 border-[#333] text-xl font-bold text-white px-4 focus:border-yard-gold focus:outline-none focus:bg-black transition-all placeholder:text-zinc-700 rounded-lg"
-                          placeholder="e.g. 2018 Honda Fit"
+                        }
+                      />
+                      <div className="grid grid-cols-2 gap-3">
+                        <FormInput
+                          label="Price" value={formData.price} onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                          placeholder="$" icon={<Tag className="w-3 h-3" />}
+                        />
+                        <FormInput
+                          label="Phone" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                          placeholder="876" icon={<Phone className="w-3 h-3" />}
                         />
                       </div>
-
-                      {/* Price & Link Up */}
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-1">
-                          <label className="text-[10px] font-black text-zinc-500 tracking-widest uppercase px-1">Price</label>
-                          <input
-                            type="text"
-                            value={formData.price}
-                            onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                            className="w-full h-14 bg-[#1a1a1a] border-2 border-[#333] text-xl font-bold text-white px-4 focus:border-yard-green focus:outline-none focus:bg-black transition-all rounded-lg"
-                          />
-                        </div>
-                        <div className="space-y-1">
-                          <label className="text-[10px] font-black text-zinc-500 tracking-widest uppercase px-1">WhatsApp</label>
-                          <input
-                            type="text"
-                            value={formData.phone}
-                            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                            className="w-full h-14 bg-[#1a1a1a] border-2 border-[#333] text-lg font-bold text-white px-4 focus:border-yard-green focus:outline-none focus:bg-black transition-all rounded-lg"
-                          />
-                        </div>
-                      </div>
-
-                      {/* Location */}
-                      <div className="space-y-1">
-                        <label className="text-[10px] font-black text-zinc-500 tracking-widest uppercase px-1">Where At?</label>
-                        <input
-                          type="text"
-                          value={formData.location}
-                          onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                          className="w-full h-14 bg-[#1a1a1a] border-2 border-[#333] text-lg font-bold text-white px-4 focus:border-yard-cyan focus:outline-none focus:bg-black transition-all rounded-lg"
+                      <FormInput
+                        label="Location" value={formData.location} onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                        placeholder="Parish" icon={<MapPin className="w-3 h-3" />}
+                      />
+                      <div className="grid grid-cols-2 gap-3">
+                        <FormInput
+                          label="Promo" value={formData.promoLabel} onChange={(e) => setFormData({ ...formData, promoLabel: e.target.value })}
+                          placeholder="SALE" icon={<Zap className="w-3 h-3" />}
                         />
-                      </div>
-
-                      {/* Promo & Slogan */}
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-1">
-                          <label className="text-[10px] font-black text-zinc-500 tracking-widest uppercase px-1">Promo Tag</label>
-                          <input
-                            type="text"
-                            value={formData.promoLabel}
-                            onChange={(e) => setFormData({ ...formData, promoLabel: e.target.value })}
-                            className="w-full h-14 bg-[#1a1a1a] border-2 border-[#333] text-sm font-bold text-white px-4 focus:border-yard-gold focus:outline-none focus:bg-black transition-all rounded-lg"
-                          />
-                        </div>
-                        <div className="space-y-1">
-                          <label className="text-[10px] font-black text-zinc-500 tracking-widest uppercase px-1">Slogan</label>
-                          <input
-                            type="text"
-                            value={formData.slogan}
-                            onChange={(e) => setFormData({ ...formData, slogan: e.target.value })}
-                            className="w-full h-14 bg-[#1a1a1a] border-2 border-[#333] text-sm font-bold text-white px-4 focus:border-yard-gold focus:outline-none focus:bg-black transition-all rounded-lg"
-                            placeholder="Optional..."
-                          />
-                        </div>
+                        <FormInput
+                          label="Hook" value={formData.slogan} onChange={(e) => setFormData({ ...formData, slogan: e.target.value })}
+                          placeholder="..."
+                        />
                       </div>
                     </div>
                   ) : (
-                    <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+                    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
                       <div className="space-y-2">
-                        <label className="text-[10px] font-black text-zinc-500 tracking-widest uppercase px-1">Visual Theme</label>
-                        <div className="grid grid-cols-3 gap-3">
+                        <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest px-1">Theme</label>
+                        <div className="grid grid-cols-3 gap-2">
                           {(['cyber', 'luxury', 'island'] as const).map(s => (
                             <button key={s} onClick={() => setFormData({ ...formData, style: s })}
-                              className={cn("h-14 border-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all shadow-[4px_4px_0px_rgba(0,0,0,0.5)] active:translate-y-1 active:shadow-none",
+                              className={cn("h-12 rounded-xl border border-white/5 text-[10px] font-black uppercase tracking-widest transition-all",
                                 formData.style === s
-                                  ? s === 'luxury' ? "bg-yard-gold border-yard-gold text-black"
-                                    : s === 'island' ? "bg-yard-green border-yard-green text-black"
-                                      : "bg-yard-cyan border-yard-cyan text-black"
-                                  : "bg-[#1a1a1a] border-[#333] text-zinc-500"
+                                  ? s === 'luxury' ? "bg-yard-gold text-black shadow-lg"
+                                    : s === 'island' ? "bg-yard-green text-black shadow-lg"
+                                      : "bg-yard-cyan text-black shadow-lg"
+                                  : "bg-[#1a1a1a] text-zinc-500"
                               )}>
                               {s}
                             </button>
                           ))}
                         </div>
                       </div>
-
                       <div className="space-y-2">
-                        <label className="text-[10px] font-black text-zinc-500 tracking-widest uppercase px-1">Layout</label>
-                        <div className="grid grid-cols-3 gap-3">
+                        <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest px-1">Layout</label>
+                        <div className="grid grid-cols-3 gap-2">
                           {(['center', 'bottom', 'minimal'] as const).map(l => (
                             <button key={l} onClick={() => setFormData({ ...formData, layout: l })}
-                              className={cn("h-12 border-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all",
-                                formData.layout === l ? "bg-[#333] border-white text-white" : "bg-[#1a1a1a] border-[#333] text-zinc-600"
+                              className={cn("h-12 rounded-xl border border-white/5 text-[10px] font-black uppercase tracking-widest transition-all",
+                                formData.layout === l ? "bg-[#333] text-white border-white/20" : "bg-[#1a1a1a] text-zinc-600"
                               )}>
                               {l}
                             </button>
                           ))}
                         </div>
                       </div>
-
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-black text-zinc-500 tracking-widest uppercase px-1">Zoom Level: {Math.round(zoom * 100)}%</label>
+                      <div className="space-y-2 bg-[#111] p-4 rounded-xl border border-white/5">
+                        <div className="flex justify-between">
+                          <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Zoom</span>
+                          <span className="text-[10px] font-black text-white">{Math.round(zoom * 100)}%</span>
+                        </div>
                         <input type="range" min="0.5" max="2" step="0.1" value={zoom} onChange={(e) => setZoom(parseFloat(e.target.value))}
-                          className="w-full h-2 bg-[#1a1a1a] rounded-lg appearance-none cursor-pointer accent-yard-cyan" />
+                          className="w-full h-2 bg-[#222] rounded-lg appearance-none cursor-pointer accent-yard-cyan" />
                       </div>
                     </div>
                   )}
                 </div>
               </div>
-            </main>
+            </div>
 
             {/* STICKY FOOTER */}
-            <footer className="absolute bottom-0 inset-x-0 p-4 bg-black/80 backdrop-blur-xl border-t border-[#333]">
-              <CreateButton className="w-full h-16 text-xl font-black italic tracking-tighter uppercase shadow-[0_0_20px_rgba(34,197,94,0.4)]" />
-            </footer>
+            <div className="fixed bottom-0 left-0 right-0 p-4 pt-8 bg-gradient-to-t from-black via-black/90 to-transparent z-50">
+              <CreateButton className="shadow-[0_0_40px_rgba(34,197,94,0.3)] hover:shadow-[0_0_60px_rgba(34,197,94,0.5)] border-yard-green/50" />
+            </div>
+
           </div>
 
           {/* DESKTOP EDITOR */}

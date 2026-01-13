@@ -169,10 +169,6 @@ export const AssetPreview = forwardRef<HTMLDivElement, AssetPreviewProps>(({ dat
                         <div className="absolute inset-0 bg-gradient-to-tr from-yard-cyan/10 via-transparent to-yard-purple/10" />
                     </div>
                 )}
-                {/* REMOVED: bg-black/20 overlay that was darkening the image */}
-                {(layout === 'bottom' || layout === 'minimal' || layout === 'center') && (
-                    <div className="absolute bottom-0 w-full h-1/4 bg-gradient-to-t from-black/90 to-transparent z-30 pointer-events-none" />
-                )}
             </div>
 
             {/* === LAYER 2: DYNAMIC CONTENT (Title, Price, Tag) (Z-40) === */}
