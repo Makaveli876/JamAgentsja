@@ -141,28 +141,18 @@ export const AssetPreview = forwardRef<HTMLDivElement, AssetPreviewProps>(({ dat
             {/* === LAYER 1: BACKGROUND (Image + Drag) (Z-0 to Z-10) === */}
             <div className="absolute inset-0 z-0 pointer-events-none">
                 {previewImage ? (
-                    <>
-                        <div className="absolute inset-0 z-0 overflow-hidden">
-                            <img
-                                src={previewImage}
-                                className="w-full h-full object-cover blur-2xl opacity-50 scale-125 saturate-150"
-                                alt="Ambient"
-                                draggable={false}
-                            />
-                        </div>
-                        <div className="absolute inset-0 z-10">
-                            <img
-                                src={previewImage}
-                                className="h-full w-full object-contain relative z-10 opacity-100 mix-blend-normal transition-transform duration-100 ease-out will-change-transform"
-                                style={{
-                                    transform: `translate(${imagePos.x}px, ${imagePos.y}px) scale(${zoom})`,
-                                    cursor: isDragging ? 'grabbing' : 'grab'
-                                }}
-                                alt="Preview"
-                                draggable={false}
-                            />
-                        </div>
-                    </>
+                    <div className="absolute inset-0 z-10 bg-[#050505]">
+                        <img
+                            src={previewImage}
+                            className="w-full h-full object-contain"
+                            style={{
+                                transform: `translate(${imagePos.x}px, ${imagePos.y}px) scale(${zoom})`,
+                                cursor: isDragging ? 'grabbing' : 'grab'
+                            }}
+                            alt="Preview"
+                            draggable={false}
+                        />
+                    </div>
                 ) : (
                     <div className="h-full w-full bg-zinc-900 flex items-center justify-center relative z-10">
                         <Tag className="w-24 h-24 text-white/5 rotate-12" />
