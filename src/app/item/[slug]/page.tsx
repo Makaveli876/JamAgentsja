@@ -71,7 +71,7 @@ export default async function Page({ params }: { params: { slug: string } }) {
     await trackVisit(listing.id, slug);
 
     const whatsappUrl = `https://wa.me/${listing.phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(
-        `Hi, I saw your listing on Yard Wire: ${listing.title} (${listing.price}). Is it still available?`
+        `Hi, I saw your listing on Yard Wire: ${listing.title} (${listing.price}). Is it still available? https://jamagents.com/item/${slug}`
     )}`;
 
     return (
