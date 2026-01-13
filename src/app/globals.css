@@ -149,3 +149,29 @@ body {
   background-position: center;
   background-attachment: fixed;
 }
+
+/* PRIORITY 3: CRITICAL CSS FIXES */
+/* Ensure images are never accidentally hidden */
+img {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Fix for iOS file input */
+input[type="file"] {
+  font-size: 16px;
+  /* Prevents zoom on iOS */
+}
+
+/* Smooth transitions */
+.transition-all {
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 200ms;
+}
+
+
+/* Safe area padding for notched phones */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 2rem);
+}
