@@ -462,11 +462,12 @@ const CreatorScreen = ({ userIntent, onBack, onExport }: { userIntent: any, onBa
 
       {/* Main Workspace - Grows to fill, centers content */}
       <div
-        className="flex-1 flex items-center justify-center p-4 overflow-hidden relative"
+        className="flex-1 flex items-center justify-center p-4 overflow-hidden relative transition-[padding] duration-500 ease-in-out"
         onClick={() => isControlsOpen && setIsControlsOpen(false)}
+        style={{ paddingBottom: isControlsOpen ? '45vh' : '1rem' }}
       >
         <GlassCard
-          className={cn("p-2 transition-all duration-700 shadow-2xl", isControlsOpen ? 'scale-90 opacity-40 blur-sm' : 'scale-100 opacity-100 blur-0')}
+          className={cn("p-2 transition-all duration-500 shadow-2xl origin-center", isControlsOpen ? 'scale-90' : 'scale-100')}
           glow
           theme={currentTheme}
         >
