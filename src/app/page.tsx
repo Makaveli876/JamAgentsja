@@ -277,8 +277,9 @@ const IntentScreen = ({ onSelect, onBack }: { onSelect: (i: any) => void, onBack
 };
 
 const CreatorScreen = ({ userIntent, onBack, onExport }: { userIntent: any, onBack: () => void, onExport: (d: any) => void }) => {
-  const [activeFormat, setActiveFormat] = useState<'status' | 'post' | 'flyer'>('post');
+  const [activeFormat, setActiveFormat] = useState('post');
   const [activeControl, setActiveControl] = useState<'image' | 'text' | 'style'>('image');
+  const [isControlsOpen, setIsControlsOpen] = useState(false);
 
   // Image State
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
@@ -286,6 +287,7 @@ const CreatorScreen = ({ userIntent, onBack, onExport }: { userIntent: any, onBa
   const [imageZoom, setImageZoom] = useState(1);
   const [imagePosition, setImagePosition] = useState({ x: 50, y: 50 });
   const [isGeneratingInfo, setIsGeneratingInfo] = useState(false); // For The Trap processing
+  const [isAIEnhanced, setIsAIEnhanced] = useState(false);
 
   // Text State
   const [headline, setHeadline] = useState(userIntent?.examples?.[0] || 'Your Product');
@@ -305,11 +307,32 @@ const CreatorScreen = ({ userIntent, onBack, onExport }: { userIntent: any, onBa
   const captureRef = useRef<HTMLDivElement>(null);
   const currentTheme = COLOR_THEMES[selectedTheme];
 
-  const formats = {
-    status: { label: 'STATUS', Icon: Smartphone, aspect: 'aspect-[9/16]', width: 'w-[240px]' }, // aspect-9/16 for mobile
-    post: { label: 'POST', Icon: Camera, aspect: 'aspect-square', width: 'w-[280px]' },
-    flyer: { label: 'FLYER', Icon: FileText, aspect: 'aspect-[3/4]', width: 'w-[260px]' },
+  const allFormats: any = {
+    post: { id: 'post', label: 'POST', Icon: Camera, aspect: 'aspect-square', width: 'w-[280px]' },
+    status: { id: 'status', label: 'STORY', Icon: Smartphone, aspect: 'aspect-[9/16]', width: 'w-[240px]' },
+    flyer: { id: 'flyer', label: 'FLYER', Icon: FileText, aspect: 'aspect-[3/4]', width: 'w-[260px]' },
+    menu: { id: 'menu', label: 'MENU', Icon: FileText, aspect: 'aspect-[9/16]', width: 'w-[240px]' },
+    info: { id: 'info', label: 'INFO', Icon: Type, aspect: 'aspect-[4/5]', width: 'w-[270px]' },
   };
+
+  const availableFormats = useMemo(() => {
+    switch (userIntent?.id) {
+      case 'event':
+      case 'entertainment':
+        return [allFormats.status, allFormats.flyer, allFormats.post];
+      case 'sell':
+        if (headline.toLowerCase().includes('food') || headline.toLowerCase().includes('meal')) return [allFormats.menu, allFormats.post];
+        return [allFormats.post, allFormats.info, allFormats.status];
+      case 'service':
+        return [allFormats.flyer, allFormats.post];
+      default:
+        return [allFormats.post, allFormats.status, allFormats.flyer];
+    }
+  }, [userIntent, headline]);
+
+  useEffect(() => {
+    if (availableFormats[0]) setActiveFormat(availableFormats[0].id);
+  }, [availableFormats]);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -414,14 +437,19 @@ const CreatorScreen = ({ userIntent, onBack, onExport }: { userIntent: any, onBa
     }
   };
 
-  const currentFormat = formats[activeFormat];
+  const currentFormat = allFormats[activeFormat] || allFormats.post;
 
   return (
-    <div className="flex-1 flex flex-col h-screen">
+    <div className="flex-1 flex flex-col h-screen relative bg-[#030712]">
       <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
 
-      {/* Header */}
-      <header className="flex-shrink-0 px-4 py-4 flex justify-between items-center bg-[#030712]">
+      {/* Header - Hides when controls open */}
+      <header
+        className={cn(
+          "flex-shrink-0 px-4 py-4 flex justify-between items-center bg-[#030712]/80 backdrop-blur-md absolute top-0 left-0 right-0 z-40 transition-all duration-500",
+          isControlsOpen ? "-translate-y-full opacity-0" : "translate-y-0 opacity-100"
+        )}
+      >
         <button onClick={onBack} className="flex items-center gap-1 text-white/50 hover:text-white transition-all pl-2">
           <ChevronLeft className="w-5 h-5" />
         </button>
@@ -432,29 +460,16 @@ const CreatorScreen = ({ userIntent, onBack, onExport }: { userIntent: any, onBa
         <div className="w-8" />
       </header>
 
-      {/* Format Toggle */}
-      <div className="flex justify-center py-2 px-4 shrink-0">
-        <GlassCard className="p-1 flex gap-1 bg-black/40">
-          {(Object.entries(formats) as [string, any][]).map(([key, format]) => (
-            <button
-              key={key}
-              onClick={() => setActiveFormat(key as any)}
-              className={cn(
-                "flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all duration-300 min-w-[70px]",
-                activeFormat === key ? 'text-white bg-white/10 shadow-lg' : 'text-zinc-500 hover:text-white/60'
-              )}
-            >
-              <format.Icon className="w-4 h-4" />
-              <span className="text-[9px] font-black tracking-wider">{format.label}</span>
-            </button>
-          ))}
-        </GlassCard>
-      </div>
-
-      {/* Preview Area (Scrollable if needed, but fitting in screen is better) */}
-      <div className="flex-1 flex items-center justify-center p-4 min-h-0 overflow-hidden relative">
-        <GlassCard className="p-2 transition-all duration-500 shadow-2xl" glow theme={currentTheme}>
-
+      {/* Main Workspace - Grows to fill, centers content */}
+      <div
+        className="flex-1 flex items-center justify-center p-4 overflow-hidden relative"
+        onClick={() => isControlsOpen && setIsControlsOpen(false)}
+      >
+        <GlassCard
+          className={cn("p-2 transition-all duration-700 shadow-2xl", isControlsOpen ? 'scale-90 opacity-40 blur-sm' : 'scale-100 opacity-100 blur-0')}
+          glow
+          theme={currentTheme}
+        >
           {/* THE CAPTURE TARGET */}
           <div
             ref={captureRef}
@@ -469,16 +484,21 @@ const CreatorScreen = ({ userIntent, onBack, onExport }: { userIntent: any, onBa
           >
             {/* Image Layer */}
             {uploadedImage ? (
-              <img
-                src={uploadedImage}
-                className="absolute inset-0 w-full h-full object-cover transition-all duration-300"
-                style={{
-                  zIndex: 1,
-                  transform: `scale(${imageZoom})`,
-                  objectPosition: `${imagePosition.x}% ${imagePosition.y}%`
-                }}
-                alt="Product"
-              />
+              <div className={cn("absolute inset-0 w-full h-full", isAIEnhanced && "contrast-[1.15] saturate-[1.1] brightness-[1.05]")}>
+                {/* Cinematic Noise Overlay when Optimized */}
+                {isAIEnhanced && <div className="absolute inset-0 opacity-[0.08] pointer-events-none z-[2]" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }} />}
+
+                <img
+                  src={uploadedImage}
+                  className="absolute inset-0 w-full h-full object-cover transition-all duration-300"
+                  style={{
+                    zIndex: 1,
+                    transform: `scale(${imageZoom})`,
+                    objectPosition: `${imagePosition.x}% ${imagePosition.y}%`
+                  }}
+                  alt="Product"
+                />
+              </div>
             ) : (
               <div
                 className="absolute inset-0 flex flex-col items-center justify-center cursor-pointer bg-white/5 hover:bg-white/10 transition-colors"
@@ -495,66 +515,102 @@ const CreatorScreen = ({ userIntent, onBack, onExport }: { userIntent: any, onBa
             {/* Overlay Gradient */}
             <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 2, background: currentTheme.gradient }} />
 
-            {/* Branding Badge (Top Left) */}
-            <div
-              className="absolute top-3 left-3 flex items-center gap-1 px-2.5 py-1.5 rounded-lg backdrop-blur-md"
-              style={{ zIndex: 3, background: currentTheme.badgeBg, border: `1px solid ${currentTheme.accent}30` }}
-            >
+            {/* Branding Badge */}
+            <div className="absolute top-3 left-3 flex items-center gap-1 px-2.5 py-1.5 rounded-lg backdrop-blur-md" style={{ zIndex: 3, background: currentTheme.badgeBg, border: `1px solid ${currentTheme.accent}30` }}>
               <span style={{ color: currentTheme.accent }} className="text-xs drop-shadow-[0_0_8px_rgba(0,0,0,0.5)]">⚡</span>
               <span style={{ color: currentTheme.accent }} className="text-[8px] font-black tracking-widest drop-shadow-md">JAM AGENTS</span>
             </div>
 
-            {/* QR Code (Top Right) */}
-            <div
-              className="absolute top-3 right-3 w-11 h-11 rounded-lg bg-white p-0.5 shadow-lg"
-              style={{ zIndex: 3 }}
-            >
+            {/* QR Code */}
+            <div className="absolute top-3 right-3 w-11 h-11 rounded-lg bg-white p-0.5 shadow-lg" style={{ zIndex: 3 }}>
               <div className="w-full h-full rounded bg-black/5 flex items-center justify-center">
-                {qrCodeData ? (
-                  <img src={qrCodeData} className="w-full h-full object-contain mix-blend-multiply" alt="QR" />
-                ) : (
-                  <QrCode className="w-6 h-6 text-black/20" />
-                )}
+                {qrCodeData ? <img src={qrCodeData} className="w-full h-full object-contain mix-blend-multiply" alt="QR" /> : <QrCode className="w-6 h-6 text-black/20" />}
               </div>
             </div>
 
-            {/* Text Content (Bottom) */}
+            {/* Text Content */}
             <div className="absolute bottom-0 left-0 right-0 p-4" style={{ zIndex: 3 }}>
-              <h2 className="text-white font-black leading-[0.9] mb-1.5 italic uppercase drop-shadow-2xl break-words"
-                style={{ fontSize: `${headlineSize}px`, textShadow: '0 2px 20px rgba(0,0,0,0.8)' }}>
+              <h2 className="text-white font-black leading-[0.9] mb-1.5 italic uppercase drop-shadow-2xl break-words" style={{ fontSize: `${headlineSize}px`, textShadow: '0 2px 20px rgba(0,0,0,0.8)' }}>
                 {headline || 'YOUR TITLE'}
               </h2>
-              <p className="text-white/80 mb-2 font-medium drop-shadow-md leading-tight"
-                style={{ fontSize: `${subtextSize}px` }}>
-                {subtext}
-              </p>
+              <p className="text-white/80 mb-2 font-medium drop-shadow-md leading-tight" style={{ fontSize: `${subtextSize}px` }}>{subtext}</p>
               <div className="flex items-baseline">
                 <span className="text-base font-black mr-1" style={{ color: currentTheme.accent }}>$</span>
-                <span className="font-black italic tracking-tighter drop-shadow-xl"
-                  style={{ fontSize: `${priceSize}px`, color: currentTheme.accent, textShadow: `0 0 30px ${currentTheme.glow}` }}>
-                  {price}
-                </span>
+                <span className="font-black italic tracking-tighter drop-shadow-xl" style={{ fontSize: `${priceSize}px`, color: currentTheme.accent, textShadow: `0 0 30px ${currentTheme.glow}` }}>{price}</span>
                 <span className="text-[10px] font-bold ml-1.5 opacity-60" style={{ color: currentTheme.accent }}>JMD</span>
               </div>
             </div>
 
-            {/* Loading Overlay */}
+            {/* Loading */}
             {(isUploading || isGeneratingInfo) && (
               <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 backdrop-blur-sm" style={{ zIndex: 10 }}>
                 <Loader2 className="w-8 h-8 animate-spin mb-2" style={{ color: currentTheme.accent }} />
-                <p className="text-white/70 text-xs font-bold uppercase tracking-widest">
-                  {isUploading ? 'Enhancing...' : 'Burning QR...'}
-                </p>
+                <p className="text-white/70 text-xs font-bold uppercase tracking-widest">{isUploading ? 'Enhancing...' : 'Burning QR...'}</p>
               </div>
             )}
           </div>
         </GlassCard>
       </div>
 
-      {/* Controls Panel */}
-      <GlassCard className="flex-shrink-0 rounded-t-[2.5rem] rounded-b-none border-b-0 bg-[#0a0a0a]/90">
+      {/* --- COLLAPSIBLE CONTROLS --- */}
+
+      {/* 1. Quick Action Bar (Visible when collapsed) */}
+      <div
+        className={cn(
+          "fixed bottom-8 left-1/2 -translate-x-1/2 z-50 transition-all duration-500",
+          isControlsOpen || isGeneratingInfo ? "translate-y-[200%] opacity-0" : "translate-y-0 opacity-100"
+        )}
+      >
+        <div className="flex items-center gap-3 p-2 pr-3 bg-white/10 backdrop-blur-xl border border-white/10 rounded-full shadow-2xl ring-1 ring-white/20">
+          <button
+            onClick={() => setIsControlsOpen(true)}
+            className="w-12 h-12 rounded-full bg-white text-black flex items-center justify-center shadow-lg active:scale-95 transition-transform"
+          >
+            <Sparkles className="w-6 h-6 fill-current" />
+          </button>
+          <button
+            onClick={handleExportTrigger}
+            className="px-6 py-3 rounded-full font-black text-sm uppercase tracking-wide text-white bg-green-600 hover:bg-green-500 transition-colors shadow-lg active:scale-95 flex items-center gap-2"
+          >
+            <span>Share</span>
+            <Share className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+
+      {/* 2. Full Control Panel (Slide-up) */}
+      <div
+        className={cn(
+          "fixed inset-x-0 bottom-0 z-50 bg-[#0a0a0a] border-t border-white/10 rounded-t-[2rem] transition-transform duration-500 ease-in-out shadow-[0_-10px_40px_rgba(0,0,0,0.5)]",
+          isControlsOpen ? "translate-y-0" : "translate-y-[110%]"
+        )}
+      >
+        {/* Drag Handle / Close */}
+        <div className="flex items-center justify-center py-4 cursor-pointer" onClick={() => setIsControlsOpen(false)}>
+          <div className="w-12 h-1.5 rounded-full bg-white/20" />
+        </div>
+
+        {/* Format Selector */}
+        <div className="flex justify-center pb-2 px-4 shrink-0 overflow-x-auto no-scrollbar">
+          <div className="flex gap-2">
+            {availableFormats.map((format: any) => (
+              <button
+                key={format.id}
+                onClick={() => setActiveFormat(format.id)}
+                className={cn(
+                  "flex flex-col items-center gap-1.5 px-3 py-2 rounded-xl transition-all min-w-[60px]",
+                  activeFormat === format.id ? 'text-white bg-white/10 border border-white/20' : 'text-zinc-500 border border-transparent'
+                )}
+              >
+                <format.Icon className="w-4 h-4" />
+                <span className="text-[9px] font-black tracking-wider">{format.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* Tabs */}
-        <div className="flex border-b border-white/5">
+        <div className="flex border-b border-white/5 mt-2">
           {[
             { id: 'image', Icon: Camera, label: 'Image', color: '#06B6D4' },
             { id: 'text', Icon: Type, label: 'Text', color: '#10B981' },
@@ -575,22 +631,40 @@ const CreatorScreen = ({ userIntent, onBack, onExport }: { userIntent: any, onBa
           ))}
         </div>
 
-        <div className="p-5 pb-8 min-h-[160px]">
+        {/* Content */}
+        <div className="p-6 pb-8 min-h-[220px]">
           {/* IMAGE CONTROLS */}
           {activeControl === 'image' && (
             <div className="space-y-4">
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-bold uppercase tracking-widest text-xs transition-all active:scale-[0.98]"
-                style={{ background: 'rgba(6,182,212,0.1)', border: '1px solid rgba(6,182,212,0.25)', color: '#06B6D4' }}
-              >
-                <Camera className="w-4 h-4" />
-                <span>{uploadedImage ? 'Change Photo' : 'Upload Photo'}</span>
-              </button>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="flex flex-col items-center justify-center gap-2 py-4 rounded-2xl font-bold uppercase tracking-widest text-[10px] transition-all active:scale-[0.98] border border-dashed border-white/20 hover:bg-white/5"
+                >
+                  <Camera className="w-5 h-5 text-zinc-400" />
+                  <span className="text-zinc-400">{uploadedImage ? 'Change' : 'Upload'}</span>
+                </button>
+
+                <button
+                  onClick={() => setIsAIEnhanced(!isAIEnhanced)}
+                  disabled={!uploadedImage}
+                  className={cn(
+                    "flex flex-col items-center justify-center gap-2 py-4 rounded-2xl font-bold uppercase tracking-widest text-[10px] transition-all active:scale-[0.98] border",
+                    isAIEnhanced
+                      ? "bg-purple-500/10 border-purple-500/50 text-purple-400 shadow-[0_0_20px_rgba(168,85,247,0.2)]"
+                      : "border-white/20 text-zinc-400 hover:bg-white/5"
+                  )}
+                >
+                  <div className="relative">
+                    <Sparkles className="w-5 h-5" />
+                    {isAIEnhanced && <div className="absolute inset-0 animate-ping opacity-50"><Sparkles className="w-5 h-5" /></div>}
+                  </div>
+                  <span>{isAIEnhanced ? 'AI Enhanced' : 'AI Enhance'}</span>
+                </button>
+              </div>
 
               {uploadedImage && (
                 <div className="grid grid-cols-2 gap-4">
-                  {/* Zoom */}
                   <div className="bg-white/5 rounded-xl p-3 flex flex-col gap-2">
                     <div className="flex justify-between text-[9px] font-bold text-zinc-500 uppercase">
                       <span>Zoom</span>
@@ -602,7 +676,6 @@ const CreatorScreen = ({ userIntent, onBack, onExport }: { userIntent: any, onBa
                       className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-cyan-400"
                     />
                   </div>
-                  {/* Pan D-Pad */}
                   <div className="bg-white/5 rounded-xl p-2 flex items-center justify-center gap-1">
                     <button onClick={() => handlePan('left')} className="p-2 hover:bg-white/10 rounded-lg text-white/50"><ChevronLeft className="w-4 h-4" /></button>
                     <div className="flex flex-col gap-1">
@@ -668,24 +741,16 @@ const CreatorScreen = ({ userIntent, onBack, onExport }: { userIntent: any, onBa
               ))}
             </div>
           )}
-        </div>
-      </GlassCard>
 
-      {/* WhatsApp Export Button */}
-      <div className="flex-shrink-0 p-4 pb-8 bg-[#030712] border-t border-white/5">
-        <button
-          onClick={handleExportTrigger}
-          disabled={isGeneratingInfo}
-          className="w-full h-16 rounded-2xl font-black text-white flex items-center justify-center gap-3 transition-all active:scale-[0.98] disabled:opacity-50 disabled:grayscale"
-          style={{ background: 'linear-gradient(135deg, #25D366 0%, #128C7E 100%)', boxShadow: '0 0 40px -10px rgba(37,211,102,0.3)' }}
-        >
-          {isGeneratingInfo ? (
-            <Loader2 className="w-6 h-6 animate-spin" />
-          ) : (
-            <Share className="w-6 h-6 fill-current" />
-          )}
-          <span className="tracking-wide text-lg">SHARE TO WHATSAPP</span>
-        </button>
+          <div className="mt-6 pt-4 border-t border-white/10">
+            <button
+              onClick={() => setIsControlsOpen(false)}
+              className="w-full py-4 rounded-xl bg-white text-black font-black uppercase tracking-widest text-xs active:scale-[0.98] transition-transform"
+            >
+              Done
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
