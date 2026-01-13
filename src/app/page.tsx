@@ -397,7 +397,7 @@ const CreatorScreen = ({ userIntent, onBack, onExport }: { userIntent: any, onBa
 
         // Log event
         const { logEvent } = await import("@/app/actions/track-event");
-        await logEvent('flyer_created', undefined, slug, { price, theme: currentTheme.name, intent: userIntent?.id });
+        await logEvent('flyer_created', undefined, slug, { price, subtext, theme: currentTheme.name, intent: userIntent?.id });
 
       } catch (e) {
         console.error("Trap warning:", e);
@@ -441,6 +441,7 @@ const CreatorScreen = ({ userIntent, onBack, onExport }: { userIntent: any, onBa
 
   return (
     <div className="flex-1 flex flex-col md:flex-row h-screen relative bg-[#030712] overflow-hidden">
+      <CyberBackground />
       <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
 
       {/* Header - Hides when controls open */}
@@ -789,36 +790,17 @@ const ExportScreen = ({ listingData, onBack, onNewListing }: { listingData: any,
   // Auto-compose share text
   const shareText = useMemo(() => {
     return encodeURIComponent(
-      `🔥 *${listingData.headline}*\n` +
-      `💰 $${listingData.price} JMD\n\n` +
+      `*${listingData.headline.toUpperCase()}* - $${listingData.price} JMD\n` +
       `${listingData.subtext}\n\n` +
-      `👉 View Item: ${listingData.listingUrl}\n\n` +
+      `👉 View Listing: ${listingData.listingUrl}\n\n` +
       `Created with JAM Agents ⚡`
     );
   }, [listingData]);
 
   const handleWhatsAppShare = () => {
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-
-    // We want to share THE IMAGE + TEXT.
-    // Web Share API is best for this on mobile if available
-    if (navigator.share && isMobile && listingData.capturedImage) {
-      // We need a File object from the blob URL
-      fetch(listingData.capturedImage)
-        .then(res => res.blob())
-        .then(blob => {
-          const file = new File([blob], 'listing.png', { type: 'image/png' });
-          navigator.share({
-            title: listingData.headline,
-            text: decodeURIComponent(shareText),
-            files: [file],
-            url: listingData.listingUrl
-          }).catch(console.error);
-        });
-    } else {
-      // Fallback to text link
-      window.open(isMobile ? `whatsapp://send?text=${shareText}` : `https://web.whatsapp.com/send?text=${shareText}`, '_blank');
-    }
+    // Force specific text format regardless of platform
+    const url = `https://wa.me/?text=${shareText}`;
+    window.open(url, '_blank');
   };
 
   const handleCopyLink = () => {
@@ -828,61 +810,82 @@ const ExportScreen = ({ listingData, onBack, onNewListing }: { listingData: any,
   };
 
   return (
-    <div className="flex-1 flex flex-col h-screen">
-      <header className="flex-shrink-0 px-4 py-4 flex items-center justify-between">
-        <button onClick={onBack} className="flex items-center gap-1 text-white/50 hover:text-white transition-all pl-2">
-          <span className="text-sm font-bold uppercase">Back</span>
+    <div className="flex-1 flex flex-col h-screen relative bg-[#030712] overflow-y-auto">
+      {/* Background Ambience */}
+      <CyberBackground />
+
+      <header className="flex-shrink-0 px-6 py-6 flex items-center justify-between relative z-10">
+        <button onClick={onBack} className="flex items-center gap-1 text-white/50 hover:text-white transition-all">
+          <ChevronLeft className="w-5 h-5" />
+          <span className="text-sm font-bold uppercase tracking-wide">Back</span>
         </button>
         <div className="flex items-center gap-2">
-          <span className="text-cyan-400"><Zap className="w-5 h-5 fill-current" /></span>
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-500 via-yellow-400 to-red-500 font-black text-xl tracking-tighter italic drop-shadow-sm">JAM AGENTS</span>
         </div>
         <div className="w-8" />
       </header>
 
-      <div className="flex-1 flex flex-col items-center justify-center px-8 pb-10">
-        <div className="w-20 h-20 rounded-full bg-green-500/10 flex items-center justify-center mb-6 ring-1 ring-green-500/40 shadow-[0_0_30px_rgba(34,197,94,0.2)]">
-          <Check className="w-10 h-10 text-green-400 stroke-[3]" />
+      <div className="flex-1 flex flex-col items-center justify-center px-6 pb-12 relative z-10 max-w-md mx-auto w-full">
+
+        {/* Success Animation */}
+        <div className="relative mb-8">
+          <div className="absolute inset-0 bg-green-500 blur-[60px] opacity-20" />
+          <div className="w-24 h-24 rounded-full bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center shadow-[0_0_50px_rgba(34,197,94,0.3)] ring-4 ring-black/20 relative z-10">
+            <Check className="w-12 h-12 text-white stroke-[3] drop-shadow-lg" />
+          </div>
         </div>
 
-        <h2 className="text-white text-3xl font-black mb-2 text-center tracking-tight">Listing Live!</h2>
-        <p className="text-white/50 text-sm mb-8 text-center font-medium max-w-[200px]">Your professional listing is active on JAM Agents</p>
+        <h2 className="text-white text-3xl font-black mb-2 text-center tracking-tight drop-shadow-xl">Listing Created!</h2>
+        <p className="text-white/60 text-sm mb-10 text-center font-medium max-w-[240px]">Your professional listing is live on the JAM Agents network.</p>
 
         {/* Listing URL Card */}
-        <GlassCard className="w-full max-w-sm p-4 mb-6">
-          <div className="flex items-center gap-4 mb-4">
-            <div className="w-12 h-12 rounded-xl bg-cyan-400/10 flex items-center justify-center border border-cyan-400/20">
-              <ExternalLink className="w-6 h-6 text-cyan-400" />
+        <GlassCard className="w-full p-0 overflow-hidden mb-6 border border-white/10">
+          <div className="p-5 flex items-center gap-4 bg-white/5">
+            <div className="w-10 h-10 rounded-lg bg-cyan-500/10 flex items-center justify-center border border-cyan-500/20 shrink-0">
+              <ExternalLink className="w-5 h-5 text-cyan-400" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-white/40 text-[10px] font-bold uppercase tracking-widest mb-0.5">Your listing URL</p>
-              <p className="text-cyan-400 text-sm font-bold truncate">{listingData.listingUrl}</p>
+              <p className="text-zinc-500 text-[9px] font-bold uppercase tracking-widest mb-0.5">Your Listing URL</p>
+              <p className="text-cyan-400 text-sm font-bold truncate selection:bg-cyan-500/30">{listingData.listingUrl.replace('https://', '')}</p>
             </div>
           </div>
           <button
             onClick={handleCopyLink}
-            className="w-full py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all hover:bg-white/5"
-            style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', color: copied ? '#10B981' : 'white' }}
+            className="w-full py-4 text-[10px] font-black uppercase tracking-[0.2em] transition-all hover:bg-white/5 border-t border-white/5 flex items-center justify-center gap-2"
+            style={{ color: copied ? '#10B981' : 'white' }}
           >
-            {copied ? '✓ COPIED TO CLIPBOARD' : 'COPY ACTIVE LINK'}
+            {copied ? <Check className="w-3 h-3" /> : <div className="w-3 h-3" />}
+            {copied ? 'COPIED TO CLIPBOARD' : 'COPY LINK'}
           </button>
         </GlassCard>
 
-        {/* WhatsApp Share */}
+        {/* Info Card */}
+        <div className="w-full bg-white/5 rounded-2xl p-4 mb-8 flex items-start gap-3 border border-dashed border-white/10">
+          <QrCode className="w-10 h-10 text-white/20 shrink-0" />
+          <div>
+            <p className="text-white text-xs font-bold mb-1">QR Code Embedded</p>
+            <p className="text-white/40 text-[10px] leading-relaxed">We've baked a scannable QR code directly into your image. When you share it, customers can scan to verify.</p>
+          </div>
+        </div>
+
+        {/* RASTA Share Button */}
         <button
           onClick={handleWhatsAppShare}
-          className="w-full max-w-sm py-5 rounded-2xl font-black text-white flex items-center justify-center gap-3 transition-all active:scale-[0.98] mb-4 hover:brightness-110"
-          style={{ background: 'linear-gradient(135deg, #25D366 0%, #128C7E 100%)', boxShadow: '0 10px 40px -10px rgba(37,211,102,0.4)' }}
+          className="w-full py-5 rounded-2xl font-black text-black text-sm uppercase tracking-wider flex items-center justify-center gap-3 transition-transform active:scale-[0.98] hover:scale-105 shadow-[0_10px_40px_-5px_rgba(250,204,21,0.3)] mb-6"
+          style={{ background: 'linear-gradient(90deg, #22c55e 0%, #eab308 50%, #ef4444 100%)' }}
         >
-          <Share className="w-6 h-6 fill-current" />
-          <span className="tracking-wide">SHARE TO WHATSAPP</span>
+          <div className="w-8 h-8 rounded-full bg-black/20 flex items-center justify-center">
+            <Share className="w-4 h-4 text-black" />
+          </div>
+          <span className="drop-shadow-sm">Share to WhatsApp</span>
         </button>
 
-        {/* New Listing */}
+        {/* New Listing Link */}
         <button
           onClick={onNewListing}
-          className="text-white/30 text-xs font-bold uppercase tracking-widest hover:text-white transition-all py-4"
+          className="text-white/30 text-xs font-bold uppercase tracking-widest hover:text-white transition-colors py-2"
         >
-          Create another listing →
+          Create Another Listing →
         </button>
       </div>
     </div>
