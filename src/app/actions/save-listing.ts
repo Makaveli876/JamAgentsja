@@ -30,7 +30,7 @@ export async function saveListing(formData: {
         visual_style: formData.style, // Mapping style -> visual_style
         slug: slug,
         photo_url: formData.photo_url || null,
-        status: formData.status || 'active',
+        // status property removed to match current schema
     };
 
     const { data, error } = await supabase
