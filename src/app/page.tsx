@@ -580,7 +580,7 @@ const CreatorScreen = ({ userIntent, onBack, onExport }: { userIntent: any, onBa
             onClick={() => setIsControlsOpen(true)}
             className="w-12 h-12 rounded-full bg-white text-black flex items-center justify-center shadow-lg active:scale-95 transition-transform"
           >
-            <Sparkles className="w-6 h-6 fill-current" />
+            <ChevronUp className="w-6 h-6" />
           </button>
           <button
             onClick={handleExportTrigger}
@@ -600,8 +600,10 @@ const CreatorScreen = ({ userIntent, onBack, onExport }: { userIntent: any, onBa
         )}
       >
         {/* Drag Handle / Close */}
-        <div className="flex items-center justify-center py-4 cursor-pointer" onClick={() => setIsControlsOpen(false)}>
-          <div className="w-12 h-1.5 rounded-full bg-white/20" />
+        <div className="flex items-center justify-center py-4 cursor-pointer active:opacity-50 transition-opacity" onClick={() => setIsControlsOpen(false)}>
+          <div className="w-12 h-8 flex items-center justify-center bg-white/5 rounded-full border border-white/5">
+            <ChevronDown className="w-5 h-5 text-white/50" />
+          </div>
         </div>
 
         {/* Format Selector */}
