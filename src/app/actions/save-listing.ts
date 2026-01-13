@@ -18,6 +18,12 @@ export async function saveListing(formData: {
         hasUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
         hasServiceKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
     });
+    console.log('=== SAVE LISTING DEBUG ===');
+    console.log('Received image_url:', formData.photo_url);
+    console.log('image_url type:', typeof formData.photo_url);
+    if (formData.photo_url) {
+        console.log('image_url starts with:', formData.photo_url.substring(0, 50));
+    }
     console.log('INPUT:', JSON.stringify(formData, null, 2));
 
     // Initialize Supabase with Service Role Key to bypass RLS

@@ -4,6 +4,7 @@ import { MessageCircle, MapPin, Share2, ShieldCheck, Zap } from "lucide-react";
 import Link from "next/link";
 import { Metadata } from "next";
 import { trackVisit } from "@/app/actions/track-event";
+import { validateJamaicaPhone } from "@/lib/validators";
 
 // Force dynamic rendering so we always get fresh data
 export const dynamic = 'force-dynamic';
@@ -74,13 +75,14 @@ export default async function Page({ params }: { params: { slug: string } }) {
     // Given "Fast" requirement, awaiting a DB insert (10-50ms) is acceptable for analytics accuracy.
     await trackVisit(listing.id, slug);
 
-    const normalizedPhone = listing.whatsapp ? listing.whatsapp.replace(/[^0-9]/g, '') : '18765555555'; // Fallback to generic if missing
+    const { valid, normalized, error } = validateJamaicaPhone(listing.whatsapp || '8765555555');
+    const finalPhone = normalized || '18765555555';
 
     // Deep Link Format: https://wa.me/{normalized_number}?text={encoded_message}
     // Protocol Message: "Hi! 👋 I'm interested in your listing: 📦 {headline} 💰 {price} I found it on JAM Agents."
     const message = `Hi! 👋\n\nI'm interested in your listing:\n📦 ${listing.headline}\n💰 ${listing.price}\n\nI found it on JAM Agents.`;
 
-    const whatsappUrl = `https://api.whatsapp.com/send?phone=${normalizedPhone}&text=${encodeURIComponent(message)}`;
+    const whatsappUrl = `https://wa.me/${finalPhone}?text=${encodeURIComponent(message)}`;
 
     return (
         <main className="min-h-screen bg-black text-white relative overflow-hidden flex flex-col items-center">

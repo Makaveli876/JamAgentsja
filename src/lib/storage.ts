@@ -1,12 +1,16 @@
-import { supabase } from "@/lib/supabase";
+import { createClient } from '@supabase/supabase-js';
 
-/**
- * Uploads a flyer image (Hero Image) to Supabase Storage.
- * Follows the naming convention: flyer-images/{slug}/hero.{ext}
- */
-export async function uploadFlyerImage(file: File | Blob, slug: string): Promise<string | null> {
+const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
+
+export async function uploadFlyerImage(
+    file: File | Blob,
+    slug: string
+): Promise<{ success: boolean; publicUrl?: string; error?: string }> {
     try {
-        // Determine extension (default to png if blob)
+        // Generate unique filename
         let fileExt = 'png';
         if (file instanceof File) {
             fileExt = file.name.split('.').pop() || 'png';
@@ -14,31 +18,34 @@ export async function uploadFlyerImage(file: File | Blob, slug: string): Promise
             fileExt = file.type.split('/')[1] || 'png';
         }
 
-        const fileName = `${slug}/hero.${fileExt}`;
+        // Timestamp to prevent caching issues if re-uploaded
+        const timestamp = Date.now();
+        const fileName = `${slug}/hero-${timestamp}.${fileExt}`;
 
-        // Upload to Supabase
-        const { error: uploadError } = await supabase.storage
+        // Upload to Supabase Storage
+        const { data, error } = await supabase.storage
             .from('flyer-images')
             .upload(fileName, file, {
                 cacheControl: '3600',
-                upsert: true
+                upsert: true,
+                contentType: file.type || 'image/png'
             });
 
-        if (uploadError) {
-            console.error('[Storage] Upload failed:', uploadError.message);
-            return null;
+        if (error) {
+            console.error('Upload error:', error);
+            return { success: false, error: error.message };
         }
 
-        // Get Public URL
-        const { data } = supabase.storage
+        // Get public URL
+        const { data: urlData } = supabase.storage
             .from('flyer-images')
             .getPublicUrl(fileName);
 
-        console.log('[Storage] Upload success:', data.publicUrl);
-        return data.publicUrl;
-
-    } catch (err) {
-        console.error('[Storage] Unexpected error:', err);
-        return null;
+        return {
+            success: true,
+            publicUrl: urlData.publicUrl
+        };
+    } catch (e: any) {
+        return { success: false, error: e.message };
     }
 }

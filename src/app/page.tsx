@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import { saveListing } from "@/app/actions/save-listing";
-import { uploadImageServer } from "@/app/actions/upload-image";
+import { uploadFlyerImage } from "@/lib/storage";
 import { validateJamaicaPhone } from "@/lib/validators";
 
 // --- TYPES & DATA ---
@@ -408,11 +408,7 @@ const CreatorScreen = ({ userIntent, onBack, onExport }: { userIntent: any, onBa
         }
       })();
 
-      // 3. IMAGE UPLOAD (The Hydration Fix)
-      // We start this in parallel too, or await it if we strictly need the URL for the DB.
-      // Based on the protocol: "New Flow: Upload -> Get URL -> Save DB".
-      // So we must await upload BEFORE saveListing if we want the URL in the DB.
-
+      // 3. IMAGE UPLOAD (The Hydration Fix - Client Side)
       let publicImageUrl = null;
       if (uploadedImage) {
         try {
@@ -420,18 +416,14 @@ const CreatorScreen = ({ userIntent, onBack, onExport }: { userIntent: any, onBa
           const response = await fetch(uploadedImage);
           const blob = await response.blob();
 
-          // Prepare FormData for Server Action (The Ghost Upload)
-          const formData = new FormData();
-          formData.append("file", blob, "hero.png");
-          formData.append("slug", finalSlug);
+          // Use client-side upload utility
+          const uploadResult = await uploadFlyerImage(blob, finalSlug);
 
-          const uploadResult = await uploadImageServer(formData);
-
-          if (uploadResult.success && uploadResult.url) {
-            publicImageUrl = uploadResult.url;
-            console.log("Ghost Upload Success:", publicImageUrl);
+          if (uploadResult.success && uploadResult.publicUrl) {
+            publicImageUrl = uploadResult.publicUrl;
+            console.log("Image uploaded successfully:", publicImageUrl);
           } else {
-            console.error("Ghost Upload Failed:", uploadResult.error);
+            console.error("Image upload failed:", uploadResult.error);
           }
         } catch (uploadErr) {
           console.error("Image upload failed:", uploadErr);
