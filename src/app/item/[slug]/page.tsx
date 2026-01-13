@@ -10,12 +10,12 @@ export const dynamic = 'force-dynamic';
 
 interface Listing {
     id: string;
-    title: string;
+    headline: string;
     price: string;
-    location: string;
-    phone: string;
-    visual_style: string;
-    photo_url?: string;
+    parish: string;
+    whatsapp: string;
+    theme: string;
+    image_url?: string;
     slug: string;
 }
 
@@ -26,14 +26,14 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 
     if (!listing) return { title: 'Item Not Found' };
 
-    const images = listing.photo_url ? [{ url: listing.photo_url, width: 1200, height: 1200, alt: listing.title }] : [];
+    const images = listing.image_url ? [{ url: listing.image_url, width: 1200, height: 1200, alt: listing.headline }] : [];
 
     return {
-        title: `${listing.title} | Yard Wire`,
-        description: `For Sale: ${listing.title} - ${listing.price}. Located in ${listing.location}. Tap to view details & contact seller.`,
+        title: `${listing.headline} | Yard Wire`,
+        description: `For Sale: ${listing.headline} - ${listing.price}. Located in ${listing.parish}. Tap to view details & contact seller.`,
         openGraph: {
-            title: `${listing.title} | Yard Wire`,
-            description: `Price: ${listing.price} | Location: ${listing.location}`,
+            title: `${listing.headline} | Yard Wire`,
+            description: `Price: ${listing.price} | Location: ${listing.parish}`,
             images: images,
             type: 'website',
         }
@@ -70,8 +70,8 @@ export default async function Page({ params }: { params: { slug: string } }) {
     // Given "Fast" requirement, awaiting a DB insert (10-50ms) is acceptable for analytics accuracy.
     await trackVisit(listing.id, slug);
 
-    const whatsappUrl = `https://wa.me/${listing.phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(
-        `Hi, I saw your listing on Yard Wire: ${listing.title} (${listing.price}). Is it still available? https://jamagents.com/item/${slug}`
+    const whatsappUrl = `https://wa.me/${listing.whatsapp.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(
+        `Hi, I saw your listing on Yard Wire: ${listing.headline} (${listing.price}). Is it still available? https://jamagents.com/item/${slug}`
     )}`;
 
     return (
@@ -79,8 +79,8 @@ export default async function Page({ params }: { params: { slug: string } }) {
 
             {/* Background Atmosphere */}
             <div className="absolute inset-0 z-0">
-                <div className={`absolute -top-20 -left-20 w-96 h-96 rounded-full blur-[100px] opacity-20 ${listing.visual_style === 'luxury' ? 'bg-yard-gold' :
-                    listing.visual_style === 'island' ? 'bg-yard-green' : 'bg-yard-cyan'
+                <div className={`absolute -top-20 -left-20 w-96 h-96 rounded-full blur-[100px] opacity-20 ${listing.theme === 'luxury' ? 'bg-yard-gold' :
+                    listing.theme === 'island' ? 'bg-yard-green' : 'bg-yard-cyan'
                     }`} />
                 <div className="absolute top-1/2 -right-20 w-80 h-80 bg-yard-purple rounded-full blur-[120px] opacity-20" />
             </div>
@@ -100,10 +100,10 @@ export default async function Page({ params }: { params: { slug: string } }) {
 
                 {/* Hero Image Area */}
                 <div className="w-full aspect-square bg-zinc-900 relative mt-0 border-b border-white/10 group overflow-hidden">
-                    {listing.photo_url ? (
+                    {listing.image_url ? (
                         <img
-                            src={listing.photo_url}
-                            alt={listing.title}
+                            src={listing.image_url}
+                            alt={listing.headline}
                             className="w-full h-full object-cover"
                         />
                     ) : (
@@ -117,8 +117,8 @@ export default async function Page({ params }: { params: { slug: string } }) {
 
                     {/* Price Overlay */}
                     <div className="absolute bottom-6 right-6">
-                        <div className={`px-4 py-2 rounded-xl backdrop-blur-md border shadow-2xl transform rotate-[-2deg] ${listing.visual_style === 'luxury' ? 'bg-yard-gold/20 border-yard-gold text-yard-gold' :
-                            listing.visual_style === 'island' ? 'bg-yard-green/20 border-yard-green text-yard-green' :
+                        <div className={`px-4 py-2 rounded-xl backdrop-blur-md border shadow-2xl transform rotate-[-2deg] ${listing.theme === 'luxury' ? 'bg-yard-gold/20 border-yard-gold text-yard-gold' :
+                            listing.theme === 'island' ? 'bg-yard-green/20 border-yard-green text-yard-green' :
                                 'bg-yard-cyan/20 border-yard-cyan text-yard-cyan'
                             }`}>
                             <span className="text-2xl font-black italic tracking-tighter">${listing.price}</span>
@@ -134,11 +134,11 @@ export default async function Page({ params }: { params: { slug: string } }) {
                             <span className="text-[10px] uppercase tracking-[0.3em] text-zinc-500 font-bold">Featured Listing</span>
                             <div className="flex items-center gap-1 text-zinc-400 text-xs">
                                 <MapPin className="w-3 h-3" />
-                                {listing.location}
+                                {listing.parish}
                             </div>
                         </div>
                         <h1 className="text-4xl font-black leading-[0.9] text-white tracking-tight uppercase">
-                            {listing.title}
+                            {listing.headline}
                         </h1>
                     </div>
 
@@ -156,7 +156,7 @@ export default async function Page({ params }: { params: { slug: string } }) {
                     </div>
 
                     <div className="p-4 rounded-2xl bg-zinc-900/50 border border-white/5 text-sm leading-relaxed text-zinc-400">
-                        Interested in this <strong>{listing.title}</strong>? Contact the seller directly on WhatsApp for more details or to arrange a viewing in <strong>{listing.location}</strong>.
+                        Interested in this <strong>{listing.headline}</strong>? Contact the seller directly on WhatsApp for more details or to arrange a viewing in <strong>{listing.parish}</strong>.
                     </div>
 
                 </div>

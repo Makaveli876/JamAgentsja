@@ -6,9 +6,9 @@ import Link from "next/link";
 interface Listing {
     id: string;
     slug: string;
-    title: string;
+    headline: string;
     price: string;
-    location: string;
+    parish: string;
     created_at: string;
 }
 
@@ -29,7 +29,7 @@ export function ListingTable({ listings }: { listings: Listing[] }) {
                             <tr key={item.id} className="group hover:bg-white/5 transition-colors">
                                 <td className="px-6 py-4">
                                     <div className="flex flex-col">
-                                        <span className="font-bold text-white text-base">{item.title}</span>
+                                        <span className="font-bold text-white text-base">{item.headline}</span>
                                         <span className="text-xs uppercase tracking-widest text-zinc-600 font-mono">
                                             #{item.slug.split('-').pop()}
                                         </span>
@@ -38,7 +38,7 @@ export function ListingTable({ listings }: { listings: Listing[] }) {
                                 <td className="px-6 py-4">
                                     <div className="flex flex-col gap-1">
                                         <span className="text-yard-cyan font-bold">{item.price}</span>
-                                        <span className="text-xs text-zinc-500">{item.location}</span>
+                                        <span className="text-xs text-zinc-500">{item.parish}</span>
                                     </div>
                                 </td>
                                 <td className="px-6 py-4">
