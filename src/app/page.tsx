@@ -308,11 +308,11 @@ const CreatorScreen = ({ userIntent, onBack, onExport }: { userIntent: any, onBa
   const currentTheme = COLOR_THEMES[selectedTheme];
 
   const allFormats: any = {
-    post: { id: 'post', label: 'POST', Icon: Camera, aspect: 'aspect-square', width: 'w-[280px]' },
-    status: { id: 'status', label: 'STORY', Icon: Smartphone, aspect: 'aspect-[9/16]', width: 'w-[240px]' },
-    flyer: { id: 'flyer', label: 'FLYER', Icon: FileText, aspect: 'aspect-[3/4]', width: 'w-[260px]' },
-    menu: { id: 'menu', label: 'MENU', Icon: FileText, aspect: 'aspect-[9/16]', width: 'w-[240px]' },
-    info: { id: 'info', label: 'INFO', Icon: Type, aspect: 'aspect-[4/5]', width: 'w-[270px]' },
+    post: { id: 'post', label: 'POST', Icon: Camera, aspect: 'aspect-square', width: 'w-[280px] md:w-[550px]' },
+    status: { id: 'status', label: 'STORY', Icon: Smartphone, aspect: 'aspect-[9/16]', width: 'w-[240px] md:w-[380px]' },
+    flyer: { id: 'flyer', label: 'FLYER', Icon: FileText, aspect: 'aspect-[3/4]', width: 'w-[260px] md:w-[500px]' },
+    menu: { id: 'menu', label: 'MENU', Icon: FileText, aspect: 'aspect-[9/16]', width: 'w-[240px] md:w-[380px]' },
+    info: { id: 'info', label: 'INFO', Icon: Type, aspect: 'aspect-[4/5]', width: 'w-[270px] md:w-[480px]' },
   };
 
   const availableFormats = useMemo(() => {
