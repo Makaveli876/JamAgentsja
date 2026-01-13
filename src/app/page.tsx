@@ -440,14 +440,14 @@ const CreatorScreen = ({ userIntent, onBack, onExport }: { userIntent: any, onBa
   const currentFormat = allFormats[activeFormat] || allFormats.post;
 
   return (
-    <div className="flex-1 flex flex-col h-screen relative bg-[#030712]">
+    <div className="flex-1 flex flex-col md:flex-row h-screen relative bg-[#030712] overflow-hidden">
       <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
 
       {/* Header - Hides when controls open */}
       <header
         className={cn(
-          "flex-shrink-0 px-4 py-4 flex justify-between items-center bg-[#030712]/80 backdrop-blur-md absolute top-0 left-0 right-0 z-40 transition-all duration-500",
-          isControlsOpen ? "-translate-y-full opacity-0" : "translate-y-0 opacity-100"
+          "flex-shrink-0 px-4 py-4 flex justify-between items-center bg-[#030712]/80 backdrop-blur-md absolute top-0 left-0 right-0 z-40 transition-all duration-500 md:right-[420px] md:translate-y-0 md:opacity-100 md:bg-transparent",
+          isControlsOpen && typeof window !== 'undefined' && window.innerWidth < 768 ? "-translate-y-full opacity-0" : "translate-y-0 opacity-100"
         )}
       >
         <button onClick={onBack} className="flex items-center gap-1 text-white/50 hover:text-white transition-all pl-2">
@@ -462,9 +462,9 @@ const CreatorScreen = ({ userIntent, onBack, onExport }: { userIntent: any, onBa
 
       {/* Main Workspace - Grows to fill, centers content */}
       <div
-        className="flex-1 flex items-center justify-center p-4 overflow-hidden relative transition-[padding] duration-500 ease-in-out"
+        className="flex-1 flex items-center justify-center p-4 overflow-hidden relative transition-[padding] duration-500 ease-in-out md:p-8 md:!pb-8"
         onClick={() => isControlsOpen && setIsControlsOpen(false)}
-        style={{ paddingBottom: isControlsOpen ? '45vh' : '1rem' }}
+        style={{ paddingBottom: isControlsOpen && typeof window !== 'undefined' && window.innerWidth < 768 ? '45vh' : '1rem' }}
       >
         <GlassCard
           className={cn("p-2 transition-all duration-500 shadow-2xl origin-center", isControlsOpen ? 'scale-90' : 'scale-100')}
@@ -571,7 +571,7 @@ const CreatorScreen = ({ userIntent, onBack, onExport }: { userIntent: any, onBa
       {/* 1. Quick Action Bar (Visible when collapsed) */}
       <div
         className={cn(
-          "fixed bottom-8 left-1/2 -translate-x-1/2 z-50 transition-all duration-500",
+          "fixed bottom-8 left-1/2 -translate-x-1/2 z-50 transition-all duration-500 md:hidden",
           isControlsOpen || isGeneratingInfo ? "translate-y-[200%] opacity-0" : "translate-y-0 opacity-100"
         )}
       >
@@ -596,13 +596,22 @@ const CreatorScreen = ({ userIntent, onBack, onExport }: { userIntent: any, onBa
       <div
         className={cn(
           "fixed inset-x-0 bottom-0 z-50 bg-[#0a0a0a] border-t border-white/10 rounded-t-[2rem] transition-transform duration-500 ease-in-out shadow-[0_-10px_40px_rgba(0,0,0,0.5)]",
+          "md:relative md:inset-auto md:w-[420px] md:h-full md:border-t-0 md:border-l md:rounded-none md:shadow-none md:translate-y-0 md:flex md:flex-col",
           isControlsOpen ? "translate-y-0" : "translate-y-[110%]"
         )}
       >
-        {/* Drag Handle / Close */}
-        <div className="flex items-center justify-center py-4 cursor-pointer active:opacity-50 transition-opacity" onClick={() => setIsControlsOpen(false)}>
+        {/* Drag Handle / Close (Mobile Only) */}
+        <div className="flex items-center justify-center py-4 cursor-pointer active:opacity-50 transition-opacity md:hidden" onClick={() => setIsControlsOpen(false)}>
           <div className="w-12 h-8 flex items-center justify-center bg-white/5 rounded-full border border-white/5">
             <ChevronDown className="w-5 h-5 text-white/50" />
+          </div>
+        </div>
+
+        {/* Desktop Header (Sidebar Brand) */}
+        <div className="hidden md:flex items-center justify-between p-6 border-b border-white/5 bg-[#0a0a0a]">
+          <div className="text-white font-bold text-lg tracking-tight">Studio Controls</div>
+          <div className="flex items-center gap-2">
+            <div className="px-2 py-1 rounded bg-white/5 border border-white/5 text-[10px] uppercase font-bold text-white/40">PRO</div>
           </div>
         </div>
 
