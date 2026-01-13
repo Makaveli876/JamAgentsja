@@ -380,23 +380,10 @@ const CreatorScreen = ({ userIntent, onBack, onExport }: { userIntent: any, onBa
       finalSlug = generateSlug(headline);
       finalListingUrl = `https://jamagents.com/item/${finalSlug}`;
 
-      // 2. Generate Real QR Code
-      try {
-        const QRCode = (await import("qrcode")).default;
-        // Use error correction level 'M' for better scannability
-        const qrData = await QRCode.toDataURL(finalListingUrl, {
-          margin: 0,
-          width: 100,
-          color: { dark: '#000000', light: '#FFFFFFFF' }
-        });
-        setQrCodeData(qrData);
-      } catch (qrErr) {
-        console.warn("QR Generation failed, proceeding without it:", qrErr);
-      }
-
-      // 3. Save Listing (The Trap)
-      // We don't await this to block the UI, but we trigger it
-      saveListing({
+      // 2. Start Critical Tasks (Parallel)
+      // We start both QR gen and DB save now.
+      // We MUST await the DB save to ensure the link works.
+      const savePromise = saveListing({
         title: headline,
         price: price,
         phone: "8765555555",
@@ -404,7 +391,35 @@ const CreatorScreen = ({ userIntent, onBack, onExport }: { userIntent: any, onBa
         style: currentTheme.id,
         status: 'active',
         slug: finalSlug
-      }).catch(err => console.error("Background Save Error:", err));
+      });
+
+      const qrPromise = (async () => {
+        try {
+          const QRCode = (await import("qrcode")).default;
+          // Use error correction level 'M' for better scannability
+          return await QRCode.toDataURL(finalListingUrl, {
+            margin: 0,
+            width: 100,
+            color: { dark: '#000000', light: '#FFFFFFFF' }
+          });
+        } catch (e) {
+          console.warn("QR Gen failed", e);
+          return null;
+        }
+      })();
+
+      // Await both - Critical for Link Validity
+      const [saveResult, qrData] = await Promise.all([savePromise, qrPromise]);
+
+      if (!saveResult.success) {
+        console.error("DB Save Failed:", saveResult.error);
+        // We log it but proceed "Fail Open" for the UI, though the link will 404.
+        // In production, we might want to alert here.
+      } else {
+        console.log("Listing saved successfully:", saveResult.slug);
+      }
+
+      if (qrData) setQrCodeData(qrData);
 
       // Log event
       const { logEvent } = await import("@/app/actions/track-event");
