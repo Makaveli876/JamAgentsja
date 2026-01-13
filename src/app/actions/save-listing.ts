@@ -9,12 +9,17 @@ export async function saveListing(formData: {
     location: string;
     style: string; // mapped from visual_style
     photo_url?: string;
+    slug?: string;
+    status?: string;
 }) {
-    // Slug Generation: title-randomnumber (sanitize to lowercase/no-spaces)
-    // Example: "Honda Civic" -> "hondacivic-482"
-    const sanitizedTitle = formData.title.toLowerCase().replace(/[^a-z0-9]/g, '');
-    const randomNum = Math.floor(Math.random() * 10000);
-    const slug = `${sanitizedTitle}-${randomNum}`;
+    // Slug Generation: Use provided slug or generate one
+    let slug = formData.slug;
+    if (!slug) {
+        // Example: "Honda Civic" -> "hondacivic-482"
+        const sanitizedTitle = formData.title.toLowerCase().replace(/[^a-z0-9]/g, '');
+        const randomNum = Math.floor(Math.random() * 10000);
+        slug = `${sanitizedTitle}-${randomNum}`;
+    }
 
     // Payload: Map to exact Supabase columns
     const payload = {
@@ -25,6 +30,7 @@ export async function saveListing(formData: {
         visual_style: formData.style, // Mapping style -> visual_style
         slug: slug,
         photo_url: formData.photo_url || null,
+        status: formData.status || 'active',
     };
 
     const { data, error } = await supabase
