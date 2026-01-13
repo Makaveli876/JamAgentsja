@@ -489,16 +489,29 @@ const CreatorScreen = ({ userIntent, onBack, onExport }: { userIntent: any, onBa
                 {/* Cinematic Noise Overlay when Optimized */}
                 {isAIEnhanced && <div className="absolute inset-0 opacity-[0.08] pointer-events-none z-[2]" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }} />}
 
-                <img
-                  src={uploadedImage}
-                  className="absolute inset-0 w-full h-full object-cover transition-all duration-300"
-                  style={{
-                    zIndex: 1,
-                    transform: `scale(${imageZoom})`,
-                    objectPosition: `${imagePosition.x}% ${imagePosition.y}%`
-                  }}
-                  alt="Product"
-                />
+                {/* 1. Ambient Background (The "Aura") - Always Fills */}
+                <div className="absolute inset-0 overflow-hidden">
+                  <img
+                    src={uploadedImage}
+                    className="w-full h-full object-cover blur-xl opacity-60 scale-125 saturate-150"
+                    alt=""
+                  />
+                  <div className="absolute inset-0 bg-black/30" />
+                </div>
+
+                {/* 2. Sharp Subject (The "Hero") - Never Cropped */}
+                <div className="absolute inset-0 p-2 flex items-center justify-center">
+                  <img
+                    src={uploadedImage}
+                    className="w-full h-full object-contain drop-shadow-2xl transition-all duration-300"
+                    style={{
+                      zIndex: 1,
+                      transform: `scale(${imageZoom})`,
+                      objectPosition: `${imagePosition.x}% ${imagePosition.y}%`
+                    }}
+                    alt="Product"
+                  />
+                </div>
               </div>
             ) : (
               <div
