@@ -338,60 +338,7 @@ export default function Home() {
   const FormFields = ({ isMobile = false }) => (
     <div className={cn("space-y-6", isMobile && "pb-32 px-1")}>
 
-      {/* MOBILE INLINE PREVIEW */}
-      {isMobile && (
-        <div className="mb-6 space-y-4">
-          <div className="flex flex-col items-center gap-2 bg-white/5 rounded-2xl border border-white/10 p-2 overflow-hidden shadow-2xl">
-            <div className="relative w-full flex justify-center scale-[0.65] origin-top h-[420px] -mb-[140px]">
-              <AssetPreview
-                data={formData}
-                previewImage={previewImage}
-                zoom={zoom}
-                qrCodeUrl={qrCodeUrl}
-              />
-            </div>
-          </div>
-
-          {/* Mobile Actions Grid */}
-          <div className="grid grid-cols-2 gap-3">
-            <div
-              onClick={() => fileInputRef.current?.click()}
-              className={cn(
-                "flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all active:scale-[0.98]",
-                previewImage
-                  ? "bg-white/5 border-white/10 hover:bg-white/10"
-                  : "bg-yard-cyan/10 border-yard-cyan text-yard-cyan shadow-[0_0_15px_rgba(0,242,255,0.2)] animate-pulse"
-              )}
-            >
-              <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center shrink-0">
-                {previewImage ? <ImagePlus className="w-4 h-4 text-white" /> : <Camera className="w-4 h-4 text-yard-cyan" />}
-              </div>
-              <div className="flex flex-col">
-                <span className="text-[10px] font-bold uppercase tracking-widest text-white">
-                  {previewImage ? "Change" : "Upload"}
-                </span>
-              </div>
-            </div>
-
-            {/* Mobile Zoom Trigger */}
-            <div className="bg-white/5 border border-white/10 rounded-xl p-3 flex flex-col justify-center gap-1">
-              <div className="flex justify-between items-center text-[8px] font-bold uppercase tracking-widest">
-                <span className="text-zinc-400">Scale</span>
-                <span className="text-yard-cyan">{Math.round(zoom * 100)}%</span>
-              </div>
-              <input
-                type="range"
-                min="0.5"
-                max="2"
-                step="0.1"
-                value={zoom}
-                onChange={(e) => setZoom(parseFloat(e.target.value))}
-                className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-yard-cyan"
-              />
-            </div>
-          </div>
-        </div>
-      )}
+      {/* MOBILE INLINE PREVIEW REMOVED - User has Main Mural Preview */}\n
 
       {/* TABS (World Class Neat Controls) */}
       <div className="flex p-1 bg-white/5 rounded-xl border border-white/10 mb-6">
@@ -669,22 +616,14 @@ export default function Home() {
                       formData.style === 'luxury' ? "from-yellow-500 via-orange-500 to-red-600" :
                         "from-green-500 via-emerald-600 to-teal-600"
                   )} />
-                  <motion.div layout className="relative z-10">
+                  <div className="relative z-10">
                     <AssetPreview
                       data={formData}
                       previewImage={previewImage}
                       zoom={zoom}
                       qrCodeUrl={qrCodeUrl}
                     />
-                    {!previewImage && (
-                      <div className="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm rounded-[2.5rem] border border-white/10">
-                        <div className="text-center space-y-2">
-                          <Camera className="w-12 h-12 text-white/20 mx-auto" />
-                          <p className="text-white/40 font-bold uppercase tracking-widest text-sm">Preview Awaits Photo</p>
-                        </div>
-                      </div>
-                    )}
-                  </motion.div>
+                  </div>
                 </div>
               </div>
             </div>
