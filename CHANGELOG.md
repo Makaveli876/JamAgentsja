@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to the Yard Wire project will be documented in this file.
+All notable changes to the Jam Agents project will be documented in this file.
 
 ## [v0.3.0] - 2026-01-11
 ### Added

@@ -8,9 +8,9 @@ import {
   ShoppingBag, Calendar, Briefcase, Car, Home as HomeIcon, Music,
   QrCode, ExternalLink, Loader2, Share
 } from 'lucide-react';
-import { cn } from "@/lib/utils";
+import { cn, getDeviceId } from "@/lib/utils";
 import { saveListing } from "@/app/actions/save-listing";
-import { uploadFlyerImage } from "@/lib/storage";
+import { uploadFlyerAsset } from "@/app/actions/upload-asset";
 import { validateJamaicaPhone } from "@/lib/validators";
 
 // --- TYPES & DATA ---
@@ -128,6 +128,12 @@ export default function Home() {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [userIntent, setUserIntent] = useState<any>(null);
   const [listingData, setListingData] = useState<any>(null);
+  const [deviceId, setDeviceId] = useState<string>('');
+
+  useEffect(() => {
+    // Initialize Device ID on mount
+    setDeviceId(getDeviceId());
+  }, []);
 
   const handleNavigate = (screen: 'landing' | 'intent' | 'creator' | 'export', data?: any) => {
     setIsTransitioning(true);
@@ -141,6 +147,14 @@ export default function Home() {
   return (
     <div className="min-h-screen relative overflow-hidden bg-[#030712] text-white selection:bg-cyan-500/30">
       <CyberBackground />
+
+      {/* Vault Link - Top Right */}
+      <div className="absolute top-4 right-4 z-50">
+        <a href="/vault" className="flex items-center gap-2 bg-neutral-900/50 backdrop-blur border border-neutral-800 px-3 py-1.5 rounded-full text-xs font-medium text-neutral-400 hover:text-white hover:border-cyan-400 transition hover:shadow-[0_0_15px_rgba(34,211,238,0.2)]">
+          <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+          <span>Agent Vault</span>
+        </a>
+      </div>
 
       <div className={cn(
         "relative z-10 transition-all duration-300 min-h-screen flex flex-col",
@@ -160,6 +174,7 @@ export default function Home() {
             userIntent={userIntent}
             onBack={() => handleNavigate('intent')}
             onExport={(data: any) => handleNavigate('export', data)}
+            deviceId={deviceId}
           />
         )}
         {currentScreen === 'export' && (
@@ -278,7 +293,7 @@ const IntentScreen = ({ onSelect, onBack }: { onSelect: (i: any) => void, onBack
   );
 };
 
-const CreatorScreen = ({ userIntent, onBack, onExport }: { userIntent: any, onBack: () => void, onExport: (d: any) => void }) => {
+const CreatorScreen = ({ userIntent, onBack, onExport, deviceId }: { userIntent: any, onBack: () => void, onExport: (d: any) => void, deviceId: string }) => {
   const [activeFormat, setActiveFormat] = useState('post');
   const [activeControl, setActiveControl] = useState<'image' | 'text' | 'style'>('image');
   const [isControlsOpen, setIsControlsOpen] = useState(false);
@@ -388,7 +403,9 @@ const CreatorScreen = ({ userIntent, onBack, onExport }: { userIntent: any, onBa
     try {
       // 1. Generate Slug
       finalSlug = generateSlug(headline);
-      finalListingUrl = `https://jamagents.com/item/${finalSlug}`;
+      // Use window.location.origin to support local testing
+      const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://jamagents.com';
+      finalListingUrl = `${baseUrl}/item/${finalSlug}`;
 
       // 2. Start Critical Tasks (Parallel)
       // We start both QR gen and DB save now.
@@ -416,8 +433,13 @@ const CreatorScreen = ({ userIntent, onBack, onExport }: { userIntent: any, onBa
           const response = await fetch(uploadedImage);
           const blob = await response.blob();
 
-          // Use client-side upload utility
-          const uploadResult = await uploadFlyerImage(blob, finalSlug);
+          // Use server action for secure upload
+          const formData = new FormData();
+          formData.append('file', blob, `flyer-${finalSlug}.png`);
+          formData.append('slug', finalSlug);
+          formData.append('deviceId', deviceId);
+
+          const uploadResult = await uploadFlyerAsset(formData);
 
           if (uploadResult.success && uploadResult.publicUrl) {
             publicImageUrl = uploadResult.publicUrl;
@@ -432,7 +454,8 @@ const CreatorScreen = ({ userIntent, onBack, onExport }: { userIntent: any, onBa
 
       // 4. SAVE TO DB (With persistent Image URL)
       const saveResult = await saveListing({
-        title: headline,
+        headline: headline, // Changed key from title to headline
+        subtext: subtext,   // Added subtext
         price: price,
         phone: finalPhone,
         location: "Jamaica", // Placeholder until Phase 3
@@ -440,7 +463,9 @@ const CreatorScreen = ({ userIntent, onBack, onExport }: { userIntent: any, onBa
         status: 'active',
         slug: finalSlug,
         photo_url: publicImageUrl || undefined,
-        whatsapp: finalPhone // Send explicit whatsapp field
+
+        whatsapp: finalPhone, // Send explicit whatsapp field
+        deviceId: deviceId // Identity Link
       });
 
       // Await QR (it might be done already)

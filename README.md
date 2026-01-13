@@ -1,6 +1,7 @@
-# Yard Wire | Premium WhatsApp Status Assets
+# Jam Agents | Premium WhatsApp Status Assets
+> **Zero-Friction Viral Commerce**
 
-Yard Wire is a high-fidelity Progressive Web App (PWA) designed for the Jamaican market to generate premium marketing assets for WhatsApp Status.
+Jam Agents is a high-fidelity Progressive Web App (PWA) designed for the Jamaican market to generate premium marketing assets for WhatsApp Status.
 
 ## Tech Stack
 - **Frontend**: Next.js 14+ (App Router)

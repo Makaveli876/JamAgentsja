@@ -41,7 +41,7 @@ export default async function DashboardPage() {
                             JAM Concierge <span className="text-transparent bg-clip-text bg-gradient-to-r from-yard-purple to-yard-cyan">HQ</span>
                         </h1>
                         <p className="text-zinc-500 max-w-lg">
-                            Manage active Yard Wire listings.
+                            Manage active Jam Agents listings.
                         </p>
                     </div>
 

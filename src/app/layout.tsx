@@ -23,7 +23,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "Yard Wire | Premium WhatsApp Assets",
+  title: "Jam Agents | Premium WhatsApp Assets",
   description: "Cyber-Island Luxury marketing asset generator for Jamaica.",
   manifest: "/manifest.json", // Prep for PWA
 };

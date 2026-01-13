@@ -10,8 +10,8 @@ export const formats = {
 // Template styles
 export const templates = [
     { name: 'Bold', id: 'cyber', gradient: 'from-black/90 via-black/50 to-transparent', font: 'font-black' },
-    { name: 'Elegant', id: 'luxury', gradient: 'from-purple-900/80 via-transparent to-purple-900/40', font: 'font-light tracking-wide' },
-    // { name: 'Vibrant', id: 'island', gradient: 'from-orange-600/70 via-transparent to-yellow-500/50', font: 'font-bold' }, // User provided orange/yellow
+    { name: 'Elegant', id: 'luxury', gradient: 'from-[#581c87]/80 via-transparent to-[#581c87]/40', font: 'font-light tracking-wide' },
+    // { name: 'Vibrant', id: 'island', gradient: 'from-[#ea580c]/70 via-transparent to-[#eab308]/50', font: 'font-bold' }, // User provided orange/yellow
     { name: 'Vibrant', id: 'island', gradient: 'from-[#052e16] via-transparent to-[#14532d]', font: 'font-bold' }, // Keeping original island greens for now? User code said orange/yellow for "Vibrant". I will respect USER code.
     { name: 'Minimal', id: 'minimal', gradient: 'from-black/60 to-transparent', font: 'font-medium' },
 ];
@@ -43,17 +43,15 @@ export const FlyerCard = React.forwardRef<HTMLDivElement, FlyerCardProps>(({
     qrCodeUrl
 }, ref) => {
     const currentFormat = formats[format];
-    // User provided templates
     const activeTemplate = templates[templateIndex] || templates[0];
-
-    // We need to handle the orange/yellow vibrant if user requested it, but I'll stick to the array I define in page.tsx based on the user request.
 
     return (
         <div
             ref={ref}
-            className={`relative overflow-hidden bg-black ${currentFormat.aspect} w-full h-full flex flex-col shadow-2xl`}
+            className={`relative overflow-hidden ${currentFormat.aspect} w-full h-full flex flex-col`}
             style={{
-                // Ensure background color is dark
+                backgroundColor: '#000000',
+                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)' // Manual shadow-2xl replacement
             }}
         >
             {/* Layer 1: Background Image */}
@@ -66,10 +64,13 @@ export const FlyerCard = React.forwardRef<HTMLDivElement, FlyerCardProps>(({
                 />
             ) : (
                 <div
-                    className="absolute inset-0 bg-gradient-to-br from-cyan-900/50 via-purple-900/50 to-amber-900/50 flex items-center justify-center"
-                    style={{ zIndex: 1 }}
+                    className="absolute inset-0 flex items-center justify-center"
+                    style={{
+                        zIndex: 1,
+                        background: 'linear-gradient(135deg, rgba(22, 78, 99, 0.5), rgba(88, 28, 135, 0.5), rgba(120, 53, 15, 0.5))'
+                    }}
                 >
-                    {/* Placeholder handled in parent or just colored bg */}
+                    {/* Placeholder */}
                 </div>
             )}
 
@@ -81,9 +82,15 @@ export const FlyerCard = React.forwardRef<HTMLDivElement, FlyerCardProps>(({
 
             {/* Layer 3: Brand Header */}
             <div className="absolute top-4 left-4 right-4 flex justify-between items-start" style={{ zIndex: 3 }}>
-                <div className="flex items-center gap-1.5 bg-black/30 backdrop-blur-sm px-2 py-1 rounded-lg border border-white/5">
-                    <span className="text-cyan-400 text-sm">⚡</span>
-                    <span className="text-white text-xs font-bold tracking-widest">JAM AGENTS</span>
+                <div
+                    className="flex items-center gap-1.5 px-2 py-1 rounded-lg backdrop-blur-sm"
+                    style={{
+                        backgroundColor: 'rgba(0, 0, 0, 0.3)',
+                        border: '1px solid rgba(255, 255, 255, 0.05)'
+                    }}
+                >
+                    <span style={{ color: '#22d3ee', fontSize: '0.875rem' }}>⚡</span>
+                    <span style={{ color: '#ffffff', fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.1em' }}>JAM AGENTS</span>
                 </div>
             </div>
 
@@ -93,22 +100,41 @@ export const FlyerCard = React.forwardRef<HTMLDivElement, FlyerCardProps>(({
                 style={{ zIndex: 3 }}
             >
                 <h2
-                    className={`text-white text-3xl leading-tight ${activeTemplate.font}`}
-                    style={{ textShadow: '0 2px 10px rgba(0,0,0,0.8)' }}
+                    className={`leading-tight ${activeTemplate.font}`}
+                    style={{
+                        color: '#ffffff',
+                        fontSize: '1.875rem', /* text-3xl */
+                        textShadow: '0 2px 10px rgba(0,0,0,0.8)'
+                    }}
                 >
                     {headline}
                 </h2>
-                <p className="text-white/80 text-sm font-medium tracking-wide mb-3">{subtext}</p>
+                <p
+                    className="font-medium tracking-wide mb-3"
+                    style={{ color: 'rgba(255, 255, 255, 0.8)', fontSize: '0.875rem' }}
+                >
+                    {subtext}
+                </p>
                 <div className="flex justify-between items-end">
                     <p
-                        className="text-4xl font-black tracking-tight"
-                        style={{ color: textColor, textShadow: '0 2px 20px rgba(0,0,0,0.5)' }}
+                        className="font-black tracking-tight"
+                        style={{
+                            fontSize: '2.25rem', /* text-4xl */
+                            color: textColor,
+                            textShadow: '0 2px 20px rgba(0,0,0,0.5)'
+                        }}
                     >
                         {price}
                     </p>
                     {/* QR CODE INJECTION */}
                     {qrCodeUrl && (
-                        <div className="bg-white p-1 rounded-lg shadow-2xl">
+                        <div
+                            className="p-1 rounded-lg"
+                            style={{
+                                backgroundColor: '#ffffff',
+                                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
+                            }}
+                        >
                             <img src={qrCodeUrl} className="w-16 h-16" alt="Scan to Contact" />
                         </div>
                     )}
@@ -117,7 +143,10 @@ export const FlyerCard = React.forwardRef<HTMLDivElement, FlyerCardProps>(({
 
             {/* Layer 10: Loading Overlay (Only if uploading) */}
             {isUploading && (
-                <div className="absolute inset-0 bg-black/70 z-10 flex items-center justify-center">
+                <div
+                    className="absolute inset-0 z-10 flex items-center justify-center"
+                    style={{ backgroundColor: 'rgba(0, 0, 0, 0.7)' }}
+                >
                     {/* Spinner handled in parent usually, but can be here */}
                 </div>
             )}

@@ -34,7 +34,7 @@ export function StageSuccess({ imageBlob, slug, onReset }: StageSuccessProps) {
                 const file = new File([imageBlob], `jamagents-${slug}.png`, { type: 'image/png' });
                 await navigator.share({
                     files: [file],
-                    title: 'Yard Wire Status',
+                    title: 'Jam Agents Status',
                     text: `Check this out! View details here: jamagents.com/item/${slug}`
                 });
             } catch (err) {

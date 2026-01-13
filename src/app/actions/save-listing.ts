@@ -1,9 +1,13 @@
 "use server";
 
 import { createClient } from '@supabase/supabase-js';
+import { checkRateLimit, getIP } from '@/lib/ratelimit';
+import { upsertSeller } from '@/app/actions/seller';
+import { getSiteUrl } from '@/lib/url';
 
 export async function saveListing(formData: {
-    title: string;
+    headline: string; // Changed from title to match Form State
+    subtext?: string; // Added subtext
     price: string;
     phone: string;
     location: string;
@@ -12,6 +16,7 @@ export async function saveListing(formData: {
     slug?: string;
     status?: string;
     whatsapp?: string;
+    deviceId?: string; // Added for Seller Identity
 }) {
     console.log('=== SAVE LISTING DEBUG ===');
     console.log('ENV CHECK:', {
@@ -25,6 +30,7 @@ export async function saveListing(formData: {
         console.log('image_url starts with:', formData.photo_url.substring(0, 50));
     }
     console.log('INPUT:', JSON.stringify(formData, null, 2));
+
 
     // Initialize Supabase with Service Role Key to bypass RLS
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -42,29 +48,67 @@ export async function saveListing(formData: {
         }
     });
 
+    // 1. Rate Limiting (Multi-Signal: Device + IP)
+    const ip = await getIP();
+
+    // Check IP Limit first (Universal)
+    const ipLimit = await checkRateLimit('ip', ip, 'create_listing');
+    if (!ipLimit.allowed) {
+        console.warn(`Rate Limit Exceeded for IP ${ip}`);
+        return {
+            success: false,
+            error: `Rate limit exceeded. Try again in ${Math.ceil(((ipLimit.resetTime?.getTime() || 0) - Date.now()) / 60000)} minutes.`
+        };
+    }
+
+    // Check Device Limit (if provided)
+    if (formData.deviceId) {
+        const deviceLimit = await checkRateLimit('device', formData.deviceId, 'create_listing');
+        if (!deviceLimit.allowed) {
+            console.warn(`Rate Limit Exceeded for Device ${formData.deviceId}`);
+            return {
+                success: false,
+                error: `Rate limit exceeded. Try again in ${Math.ceil(((deviceLimit.resetTime?.getTime() || 0) - Date.now()) / 60000)} minutes.`
+            };
+        }
+    }
+
+    // 2. Identity Linking (Upsert Seller)
+    let sellerId = null;
+    if (formData.deviceId) {
+        sellerId = await upsertSeller({
+            deviceId: formData.deviceId,
+            whatsapp: formData.whatsapp || formData.phone,
+            parish: formData.location
+        });
+    }
+
     // Slug Generation
     let slug = formData.slug;
     if (!slug) {
-        const sanitizedTitle = formData.title.toLowerCase().replace(/[^a-z0-9]/g, '');
+        const sanitizedTitle = formData.headline.toLowerCase().replace(/[^a-z0-9]/g, '');
         const randomNum = Math.floor(Math.random() * 10000);
         slug = `${sanitizedTitle}-${randomNum}`;
     }
 
     // Payload: Mapped to "Forensic Audit" Schema
-    // mismatch fixes: title->headline, phone->whatsapp, location->parish, style->theme
-    const payload = {
+    const payload: any = {
         slug: slug,
-        headline: formData.title,
+        title: formData.headline,
+        subtext: formData.subtext || '',
         price: formData.price,
-        whatsapp: formData.whatsapp || formData.phone, // Prioritize explicit whatsapp, fallback to phone
-        parish: formData.location,
-        theme: formData.style,
+        phone: formData.whatsapp || formData.phone,
+        location: formData.location,
+        visual_style: formData.style,
         image_url: formData.photo_url || null,
-        status: formData.status || 'active',
+        status: formData.status || 'published', // Default to published for now
+        seller_id: sellerId, // Link to seller if available
         // Default/derived fields
         views: 0,
         shares: 0,
-        subtext: '' // Required by schema but not in form?
+        qr_target_url: `${getSiteUrl()}/item/${slug}`, // Canonical URL from logic
+        trust_flags: {},
+        stats: {}
     };
 
     console.log('PAYLOAD TO INSERT:', JSON.stringify(payload, null, 2));
@@ -76,11 +120,7 @@ export async function saveListing(formData: {
         .single();
 
     if (error) {
-        console.error('=== SUPABASE ERROR ===');
-        console.error('Code:', error.code);
-        console.error('Message:', error.message);
-        console.error('Details:', error.details);
-        console.error('Hint:', error.hint);
+        console.error('=== SUPABASE ERROR ===', error);
         return { success: false, error: error.message, code: error.code };
     }
 

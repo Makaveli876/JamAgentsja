@@ -14,7 +14,7 @@ export async function generateSalesHook(title: string, price: string, location: 
     }
 
     const prompt = `
-  You are Yard Wire's top Jamaican sales copywriter.
+  You are Jam Agents's top Jamaican sales copywriter.
   
   CONTEXT DATA:
   - Item: "${title}"
