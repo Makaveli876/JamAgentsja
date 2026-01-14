@@ -19,10 +19,14 @@ export async function GET(request: Request) {
 
     // 3. Execute
     try {
-        await seedPackTemplates();
+        const result = await seedPackTemplates();
+        if (!result.success) {
+            console.error("Seed Action Failed:", result.error);
+            return NextResponse.json({ success: false, error: result.error }, { status: 500 });
+        }
         return NextResponse.json({ success: true, message: "Packs Seeded (Idempotent)" });
-    } catch (e) {
+    } catch (e: any) {
         console.error("Seed Error:", e);
-        return NextResponse.json({ success: false, error: "Failed to seed" }, { status: 500 });
+        return NextResponse.json({ success: false, error: e.message || "Failed to seed" }, { status: 500 });
     }
 }
