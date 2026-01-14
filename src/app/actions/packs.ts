@@ -6,6 +6,18 @@ import { supabaseServer } from "@/lib/supabase-server";
 // pack_templates ( id, title, description, vertical, template_data (jsonb), is_active )
 
 export async function seedPackTemplates() {
+    let insertedCount = 0;
+    const errors: string[] = [];
+
+    // 1. Get Before Count
+    const { count: beforeCount, error: countError } = await supabaseServer
+        .from('pack_templates')
+        .select('*', { count: 'exact', head: true });
+
+    if (countError) {
+        return { success: false, error: `Pre-flight count failed: ${countError.message}` };
+    }
+
     const templates = [
         {
             title: 'Restaurant Launch Pack',
@@ -34,7 +46,7 @@ export async function seedPackTemplates() {
         }
     ];
 
-    // Safe Seed: Check if exists by title, then insert if not.
+    // Safe Seed
     for (const t of templates) {
         const { data: existing } = await supabaseServer
             .from('pack_templates')
@@ -50,14 +62,29 @@ export async function seedPackTemplates() {
                 template_data: t.template_data,
                 is_active: true
             });
+
             if (error) {
                 console.error("Seed Insert Error:", error);
-                return { success: false, error: error.message };
+                errors.push(`${t.title}: ${error.message}`);
+            } else {
+                insertedCount++;
             }
         }
     }
 
-    return { success: true };
+    // 2. Get After Count
+    const { count: afterCount } = await supabaseServer
+        .from('pack_templates')
+        .select('*', { count: 'exact', head: true });
+
+    return {
+        success: errors.length === 0,
+        inserted: insertedCount,
+        beforeCount: beforeCount || 0,
+        afterCount: afterCount || 0,
+        idempotent: insertedCount === 0 && afterCount === beforeCount,
+        errors: errors.length > 0 ? errors : undefined
+    };
 }
 
 export async function getPackTemplates() {

@@ -5,11 +5,21 @@ import { createClient } from '@supabase/supabase-js';
 // otherwise it falls back to the Anon Key for standard operations.
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY;
 
-if (!supabaseUrl || !supabaseKey) {
-    // We don't throw here to avoid breaking build time static generation if envs are missing
-    console.warn("Supabase Environment Variables Missing in Server Client!");
+// Strict Check: Do we have the Service Role Key?
+export const usingServiceRole = !!supabaseServiceKey;
+
+if (!supabaseUrl) {
+    console.warn("Supabase URL Missing!");
 }
 
-export const supabaseServer = createClient(supabaseUrl!, supabaseKey!);
+// Fallback to Anon if Service Role missing (but log warning)
+const apiKey = supabaseServiceKey || supabaseAnonKey;
+
+if (!apiKey) {
+    console.warn("No Supabase API Key found!");
+}
+
+export const supabaseServer = createClient(supabaseUrl!, apiKey!);
