@@ -43,13 +43,17 @@ export async function seedPackTemplates() {
             .single();
 
         if (!existing) {
-            await supabaseServer.from('pack_templates').insert({
+            const { error } = await supabaseServer.from('pack_templates').insert({
                 title: t.title,
                 description: t.description,
                 vertical: t.vertical,
                 template_data: t.template_data,
                 is_active: true
             });
+            if (error) {
+                console.error("Seed Insert Error:", error);
+                return { success: false, error: error.message };
+            }
         }
     }
 

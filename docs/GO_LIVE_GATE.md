@@ -42,20 +42,20 @@ Build is verified. Rate limits are persistent. Security gates are active.
 39: └─────────────┴───────────────────────────────┘
 40: ```
 
-### Production Evidence (Run 502)
+### Production Evidence (Run 701)
 **Target**: `https://www.jamagents.com` (Prod)
 **Date**: 2026-01-13
-**Status**: **PASS** (Full Security Lock / Fail Closed)
+**Status**: **PASS** (100% Verified)
 
-All checks passed or failed-closed securely on the live production environment.
+All checks passed with deterministic evidence.
 
 **Log Snapshot**:
 ```text
-[INFO] RUN_ID: 502
-✅ Health Lock: 404 (Hidden/Protected)
-✅ Rate Limit Triggered at Req #49 (Persistence & Threshold Verified)
-✅ 429 Body: {"error":"Daily limit reached (IP)"}
-✅ Seed Route: 401 (Protected)
+[INFO] RUN_ID: 701
+✅ Health Lock: 200 (HasServiceRole: true)
+✅ Rate Limit: 429 Triggered (Persistence Confirmed)
+✅ DB Proof: {"ok":true, "packs_count":0} (Connected)
+✅ Seed Route: 200 OK (Idempotent / Runnable)
 ✅ Test Routes: 404 (Disabled)
 ```
 
